@@ -953,3 +953,94 @@ body::before {
         justify-content: space-between;
     }
 }
+
+/* ====================================================
+   追加のジャズ装飾 ＆ ダイナミックゲームエフェクト
+   ==================================================== */
+
+/* Fホールの装飾（ジャズギターモチーフ） */
+.jazz-f-hole {
+    position: fixed;
+    top: 55%;
+    transform: translateY(-50%);
+    height: 70vh;
+    width: auto;
+    color: var(--accent-amber);
+    opacity: 0.05;
+    pointer-events: none;
+    z-index: -1;
+    transition: opacity 0.5s ease, height 0.5s ease;
+    filter: drop-shadow(0 0 15px var(--accent-amber-glow));
+}
+
+.f-hole-left {
+    left: 1.5%;
+}
+
+.f-hole-right {
+    right: 1.5%;
+    transform: translateY(-50%) scaleX(-1);
+}
+
+/* レスポンシブ調整：画面が狭いときはFホールを少し控えめに */
+@media (max-width: 991px) {
+    .jazz-f-hole {
+        opacity: 0.025;
+        height: 45vh;
+    }
+    .f-hole-left { left: 0.5%; }
+    .f-hole-right { right: 0.5%; }
+}
+
+/* 正解時のきらめき効果 (Green Aura Pulse) */
+@keyframes correct-glow-pulse {
+    0% { 
+        box-shadow: 0 0 0 rgba(52, 211, 153, 0);
+        border-color: var(--border-glass);
+    }
+    50% { 
+        box-shadow: 0 0 30px rgba(52, 211, 153, 0.7);
+        border-color: #34d399;
+    }
+    100% { 
+        box-shadow: 0 0 0 rgba(52, 211, 153, 0);
+        border-color: var(--border-glass);
+    }
+}
+.correct-pulse {
+    animation: correct-glow-pulse 0.45s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+/* 不正解時のシェイク揺れ効果 (Red Aura Shake) */
+@keyframes incorrect-shake-pulse {
+    0%, 100% { 
+        transform: translateX(0); 
+        box-shadow: 0 0 0 rgba(248, 113, 113, 0);
+        border-color: var(--border-glass);
+    }
+    15%, 45%, 75% { 
+        transform: translateX(-6px); 
+        box-shadow: 0 0 25px rgba(248, 113, 113, 0.5);
+        border-color: #f87171;
+    }
+    30%, 60%, 90% { 
+        transform: translateX(6px); 
+        box-shadow: 0 0 25px rgba(248, 113, 113, 0.5);
+        border-color: #f87171;
+    }
+}
+.incorrect-pulse {
+    animation: incorrect-shake-pulse 0.45s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+/* ゴールド紙吹雪（Confetti）エフェクト用パーティクル */
+.confetti-particle {
+    position: fixed;
+    width: 9px;
+    height: 9px;
+    border-radius: 2px;
+    pointer-events: none;
+    z-index: 9999;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+

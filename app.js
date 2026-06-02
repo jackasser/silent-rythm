@@ -384,7 +384,12 @@ class SilentRhythmApp {
     addScore(pts) {
         this.score += pts;
         const scoreEl = document.getElementById('user-score');
-        if (scoreEl) scoreEl.textContent = `${this.score} pts`;
+        if (scoreEl) {
+            scoreEl.textContent = `${this.score} pts`;
+            if (window.gsap) {
+                window.gsap.fromTo(scoreEl, { scale: 1.5, color: "#fff" }, { scale: 1, color: "var(--accent-amber)", duration: 0.4, ease: "back.out(2)" });
+            }
+        }
         
         let activeTitle = this.titles[0].title;
         for (let i = 0; i < this.titles.length; i++) {
@@ -394,7 +399,13 @@ class SilentRhythmApp {
         }
         
         const titleEl = document.getElementById('user-title');
-        if (titleEl) titleEl.textContent = activeTitle;
+        if (titleEl) {
+            const oldTitle = titleEl.textContent;
+            titleEl.textContent = activeTitle;
+            if (oldTitle !== activeTitle && window.gsap) {
+                window.gsap.fromTo(titleEl, { scale: 1.4, color: "#fff" }, { scale: 1, color: "var(--accent-amber)", duration: 0.6, ease: "back.out(2)" });
+            }
+        }
 
         // セーブデータをローカルに保存
         this.saveCurrentUserData();
@@ -1311,6 +1322,7 @@ class SilentRhythmApp {
                     
                     panel.classList.add('correct-pulse');
                     window.audioEngine.playCorrectSfx();
+                    this.triggerConfetti(); // ゴールド紙吹雪
                     
                     setTimeout(() => {
                         panel.classList.remove('correct-pulse');
@@ -1322,6 +1334,11 @@ class SilentRhythmApp {
         } else {
             window.audioEngine.playIncorrectSfx();
             panel.classList.add('incorrect-pulse');
+            
+            // 指板全体を揺らすシェイクエフェクト
+            if (window.gsap) {
+                window.gsap.fromTo('#fretboard-section', { x: -6 }, { x: 6, duration: 0.05, repeat: 5, yoyo: true, ease: "sine.inOut", onComplete: () => { window.gsap.set('#fretboard-section', { x: 0 }); } });
+            }
             
             // 間違えた場所を赤色で一時表示
             this.fretboard.addMarker(locKey, 'root');
@@ -1469,6 +1486,7 @@ class SilentRhythmApp {
                 
                 if (this.gameState.foundLocations.size === this.gameState.correctLocations.length) {
                     clearInterval(this.gameInterval);
+                    this.triggerConfetti(); // ゴールド紙吹雪
                     this.endHunterGame();
                 }
             }
@@ -1476,6 +1494,11 @@ class SilentRhythmApp {
             window.audioEngine.playIncorrectSfx();
             const panel = document.getElementById('lesson-panel');
             panel.classList.add('incorrect-pulse');
+            
+            // 指板全体を揺らすシェイクエフェクト
+            if (window.gsap) {
+                window.gsap.fromTo('#fretboard-section', { x: -6 }, { x: 6, duration: 0.05, repeat: 5, yoyo: true, ease: "sine.inOut", onComplete: () => { window.gsap.set('#fretboard-section', { x: 0 }); } });
+            }
             
             // 間違えた場所を赤色で一時表示
             this.fretboard.addMarker(locKey, 'root');
@@ -1623,11 +1646,18 @@ class SilentRhythmApp {
             window.audioEngine.playChord(q.correctMidis, 1.2, 0.35);
             this.gameState.score++;
             panel.classList.add('correct-pulse');
+            this.triggerConfetti(); // ゴールド紙吹雪
             setTimeout(() => panel.classList.remove('correct-pulse'), 400);
         } else {
             window.audioEngine.playIncorrectSfx();
             this.gameState.lives--;
             panel.classList.add('incorrect-pulse');
+            
+            // 指板全体を揺らすシェイクエフェクト
+            if (window.gsap) {
+                window.gsap.fromTo('#fretboard-section', { x: -6 }, { x: 6, duration: 0.05, repeat: 5, yoyo: true, ease: "sine.inOut", onComplete: () => { window.gsap.set('#fretboard-section', { x: 0 }); } });
+            }
+            
             setTimeout(() => panel.classList.remove('incorrect-pulse'), 400);
         }
 
@@ -1674,6 +1704,48 @@ class SilentRhythmApp {
             document.getElementById('btn-go-to-3').addEventListener('click', () => this.switchStep('3'));
         } else {
             document.getElementById('btn-exit-builder').addEventListener('click', () => this.switchStep('2'));
+        }
+    }
+
+    /* ゴールド紙吹雪（Confetti）エフェクトの実行 */
+    triggerConfetti() {
+        const colors = ['#fbbf24', '#f59e0b', '#d97706', '#60a5fa', '#34d399', '#f87171'];
+        const container = document.body;
+        
+        for (let i = 0; i < 70; i++) {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti-particle';
+            confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+            
+            // 画面中央付近を爆発の起点とする
+            const startX = window.innerWidth / 2;
+            const startY = window.innerHeight * 0.45;
+            
+            confetti.style.left = `${startX}px`;
+            confetti.style.top = `${startY}px`;
+            container.appendChild(confetti);
+            
+            const angle = Math.random() * Math.PI * 2;
+            const velocity = 80 + Math.random() * 250;
+            const targetX = startX + Math.cos(angle) * velocity;
+            const targetY = startY + Math.sin(angle) * velocity + (350 + Math.random() * 250); // 浮き上がってから重力落下
+            
+            if (window.gsap) {
+                window.gsap.to(confetti, {
+                    x: targetX - startX,
+                    y: targetY - startY,
+                    rotation: Math.random() * 1080,
+                    opacity: 0,
+                    scale: Math.random() * 1.5 + 0.4,
+                    duration: 1.2 + Math.random() * 1.6,
+                    ease: "power2.out",
+                    onComplete: () => {
+                        confetti.remove();
+                    }
+                });
+            } else {
+                confetti.remove();
+            }
         }
     }
 }

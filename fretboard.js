@@ -396,9 +396,34 @@ class InteractiveFretboard {
         group.appendChild(text);
         this.markersGroup.appendChild(group);
         
+        // タップ時に周囲に広がる光の波紋エフェクトを追加
+        const ripple = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        ripple.setAttribute('cx', x);
+        ripple.setAttribute('cy', y);
+        ripple.setAttribute('r', r);
+        ripple.setAttribute('fill', 'none');
+        ripple.setAttribute('stroke', 'var(--accent-amber)');
+        ripple.setAttribute('stroke-width', '2');
+        ripple.setAttribute('filter', 'drop-shadow(0 0 6px var(--accent-amber))');
+        this.markersGroup.appendChild(ripple);
+        
         // GSAP を用いたタップ時の波紋・バウンスポップアップ
         if (window.gsap) {
             window.gsap.from(group, { scale: 0, transformOrigin: `${x}px ${y}px`, duration: 0.25, ease: "back.out(2)" });
+            window.gsap.to(ripple, {
+                scale: 2.2,
+                transformOrigin: `${x}px ${y}px`,
+                opacity: 0,
+                duration: 0.45,
+                ease: "power2.out",
+                onComplete: () => {
+                    try { this.markersGroup.removeChild(ripple); } catch(e) {}
+                }
+            });
+        } else {
+            setTimeout(() => {
+                try { this.markersGroup.removeChild(ripple); } catch(e) {}
+            }, 450);
         }
         
         setTimeout(() => {
