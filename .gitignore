@@ -1,5 +1,5 @@
 # Screenshots and temporary logs
-*.png
+screenshot_*.png
 .antigravity/
 
 # OS generated files
