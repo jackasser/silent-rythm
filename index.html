@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Silent Rhythm | 誰でもできるギター・ジャズセッション超入門</title>
+    <meta name="description" content="楽譜が読めない、指板の音名が分からない初心者でも、ゲーム感覚で楽しく学び、ジャズセッションデビューを目指せるインタラクティブ学習Webサイト。">
+    <link rel="stylesheet" href="style.css">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- GSAP (GreenSock Animation Platform) for Ultra-Smooth Motion Design -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <!-- Google Fonts: Space Grotesk (Distinctive Modern Geometric) & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="jazz-club-container">
+        <!-- バックグラウンドのネオン風演出 -->
+        <div class="neon-glow-bg"></div>
+
+        <!-- ヘッダーエリア -->
+        <header class="app-header">
+            <div class="logo-area">
+                <i class="fa-solid fa-guitar neon-guitar-icon"></i>
+                <h1 id="app-title">Silent Rhythm</h1>
+                <span class="tagline">Midnight Jazz Academy</span>
+            </div>
+            
+            <div class="header-user-controls">
+                <div class="user-status-card" id="header-status-card">
+                    <div class="status-item">
+                        <span class="label"><i class="fa-solid fa-medal"></i> 称号</span>
+                        <span class="value" id="user-title">未熟なギタリスト</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="label"><i class="fa-solid fa-star"></i> スコア</span>
+                        <span class="value" id="user-score">0 pts</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="label"><i class="fa-solid fa-circle-notch"></i> 開放レベル</span>
+                        <span class="value" id="unlocked-level">Step 0-A</span>
+                    </div>
+                </div>
+                
+                <button class="secondary-btn" id="btn-login-trigger" style="padding: 8px 14px; font-size: 0.85rem; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-right-to-bracket"></i> ログイン
+                </button>
+                
+                <div class="user-profile-badge" id="user-profile-badge" style="display: none; align-items: center; gap: 10px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); padding: 5px 12px; border-radius: 10px;">
+                    <span id="current-user-name" style="font-size: 0.85rem; font-weight: 700; color: #fff;">Guest</span>
+                    <button class="logout-btn" id="btn-logout" title="ログアウト" style="background: none; border: none; color: var(--color-root); cursor: pointer; padding: 2px 6px; font-size: 0.9rem;"><i class="fa-solid fa-power-off"></i></button>
+                </div>
+            </div>
+        </header>
+
+        <!-- メイングリッドレイアウト -->
+        <main class="app-main-grid">
+            <!-- 左サイドバー: ロードマップステップナビゲーション -->
+            <aside class="sidebar-roadmap">
+                <h2 class="section-title">ROADMAP</h2>
+                <nav class="roadmap-steps" id="roadmap-nav">
+                    <button class="roadmap-step-btn active" id="btn-step-0a" data-step="0a">
+                        <span class="step-num">0-A</span>
+                        <span class="step-name"><i class="fa-solid fa-map"></i> 音の地図 (基礎)</span>
+                        <span class="lock-icon"><i class="fa-solid fa-lock-open"></i></span>
+                    </button>
+                    <button class="roadmap-step-btn locked" id="btn-step-0b" data-step="0b" disabled>
+                        <span class="step-num">0-B</span>
+                        <span class="step-name"><i class="fa-solid fa-music"></i> コード＆スケール</span>
+                        <span class="lock-icon"><i class="fa-solid fa-lock"></i></span>
+                    </button>
+                    <button class="roadmap-step-btn locked" id="btn-step-1" data-step="1" disabled>
+                        <span class="step-num">Step 1</span>
+                        <span class="step-name"><i class="fa-solid fa-drum"></i> タイム＆スウィング</span>
+                        <span class="lock-icon"><i class="fa-solid fa-lock"></i></span>
+                    </button>
+                    <button class="roadmap-step-btn locked" id="btn-step-2" data-step="2" disabled>
+                        <span class="step-num">Step 2</span>
+                        <span class="step-name"><i class="fa-solid fa-layer-group"></i> シェル・バッキング</span>
+                        <span class="lock-icon"><i class="fa-solid fa-lock"></i></span>
+                    </button>
+                    <button class="roadmap-step-btn locked" id="btn-step-3" data-step="3" disabled>
+                        <span class="step-num">Step 3</span>
+                        <span class="step-name"><i class="fa-solid fa-bolt"></i> アドリブ・着地</span>
+                        <span class="lock-icon"><i class="fa-solid fa-lock"></i></span>
+                    </button>
+                    <button class="roadmap-step-btn locked" id="btn-step-4" data-step="4" disabled>
+                        <span class="step-num">Step 4</span>
+                        <span class="step-name"><i class="fa-solid fa-users-viewfinder"></i> バーチャルセッション</span>
+                        <span class="lock-icon"><i class="fa-solid fa-lock"></i></span>
+                    </button>
+                </nav>
+            </aside>
+
+            <!-- 中央・右: メインコンテンツ表示エリア -->
+            <section class="main-content-area">
+                <!-- コンテンツカード (学習・ゲーム切り替え) -->
+                <div class="content-glass-card" id="lesson-panel">
+                    <!-- 動的にJSで切り替わる学習内容が入る -->
+                    <div id="lesson-content-placeholder">
+                        <!-- 初期読み込み時はStep 0-Aを表示 -->
+                    </div>
+                </div>
+
+                <!-- インタラクティブ連動エリア (五線譜 ＆ ギター指板) -->
+                <div class="interactive-stage-card">
+                    <div class="stage-header">
+                        <h3 class="stage-title">INTERACTIVE STAGE</h3>
+                        <div class="notation-toggles" style="display: flex; gap: 15px; align-items: center;">
+                            <div class="toggle-group" style="display: flex; align-items: center; gap: 6px;">
+                                <span class="toggle-label">音名表記:</span>
+                                <button class="toggle-btn active" id="btn-notation-cde">C D E</button>
+                                <button class="toggle-btn" id="btn-notation-doremi">ドレミ</button>
+                            </div>
+                            <div class="toggle-group" style="display: flex; align-items: center; gap: 6px; border-left: 1px solid var(--border-glass); padding-left: 15px;">
+                                <span class="toggle-label">指板全音表示:</span>
+                                <button class="toggle-btn" id="btn-toggle-all-notes"><i class="fa-solid fa-eye-slash"></i> OFF</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 五線譜エリア -->
+                    <div class="staff-container" id="staff-section">
+                        <!-- JSでSVG描画 -->
+                        <div id="svg-staff-wrapper"></div>
+                        <div class="staff-tips" id="staff-readout">音符をクリックするか、ドラッグしてみよう！</div>
+                    </div>
+
+                    <!-- ギター指板エリア -->
+                    <div class="fretboard-container" id="fretboard-section">
+                        <!-- JSでSVG描画 -->
+                        <div id="svg-fretboard-wrapper"></div>
+                        <div class="fretboard-legend">
+                            <span class="legend-dot root">●</span> ルート (C)
+                            <span class="legend-dot degree3">●</span> 3度 (E)
+                            <span class="legend-dot degree7">●</span> 7度 (B)
+                            <span class="legend-dot scale">●</span> スケール音
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- フッター: セッションの知恵・Tips -->
+        <footer class="app-footer">
+            <div class="tips-container">
+                <span class="tips-badge">JAZZ TIPS</span>
+                <p id="dynamic-tips">アンプの低音（Bass）は絞り気味にするのが、ベース奏者を邪魔しないコツです。</p>
+            </div>
+            <div class="footer-credit">
+                &copy; 2026 Silent Rhythm - Midnight Jazz Academy
+            </div>
+        </footer>
+    </div>
+    
+    <!-- ログインモーダル -->
+    <div class="login-modal-overlay" id="login-modal" style="display: none;">
+        <div class="login-modal-card">
+            <button class="modal-close-btn" id="btn-close-login"><i class="fa-solid fa-xmark"></i></button>
+            <div class="modal-tabs">
+                <button class="modal-tab-btn active" id="tab-login">ログイン</button>
+                <button class="modal-tab-btn" id="tab-register">新規登録</button>
+            </div>
+            
+            <!-- ログインフォーム -->
+            <form id="form-login" class="modal-form">
+                <div class="form-group">
+                    <label for="login-username"><i class="fa-solid fa-user"></i> ユーザー名</label>
+                    <input type="text" id="login-username" required placeholder="ユーザー名を入力">
+                </div>
+                <div class="form-group">
+                    <label for="login-password"><i class="fa-solid fa-lock"></i> パスワード</label>
+                    <input type="password" id="login-password" required placeholder="パスワードを入力">
+                </div>
+                <div class="form-error-msg" id="login-error"></div>
+                <button type="submit" class="action-btn" style="width: 100%; margin-top: 10px;">
+                    <i class="fa-solid fa-right-to-bracket"></i> ログイン
+                </button>
+            </form>
+
+            <!-- 新規登録フォーム -->
+            <form id="form-register" class="modal-form" style="display: none;">
+                <div class="form-group">
+                    <label for="register-username"><i class="fa-solid fa-user"></i> ユーザー名</label>
+                    <input type="text" id="register-username" required placeholder="新しいユーザー名（例: Ken）">
+                </div>
+                <div class="form-group">
+                    <label for="register-password"><i class="fa-solid fa-lock"></i> パスワード</label>
+                    <input type="password" id="register-password" required placeholder="パスワードを設定">
+                </div>
+                <div class="form-group">
+                    <label for="register-nickname"><i class="fa-solid fa-tag"></i> ニックネーム（表示名）</label>
+                    <input type="text" id="register-nickname" placeholder="ニックネームを入力">
+                </div>
+                <div class="form-error-msg" id="register-error"></div>
+                <button type="submit" class="action-btn" style="width: 100%; margin-top: 10px; background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                    <i class="fa-solid fa-user-plus"></i> 新規アカウント作成
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- アプリケーションスクリプトのインポート -->
+    <script src="audio-engine.js"></script>
+    <script src="staff.js"></script>
+    <script src="fretboard.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

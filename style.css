@@ -1,0 +1,955 @@
+/* style.css - Premium Midnight Jazz Club Design System (Linear & Apple Aesthetic) */
+
+:root {
+    --bg-dark: #05070f;
+    --bg-card: rgba(10, 14, 28, 0.75);
+    --border-glass: rgba(255, 255, 255, 0.05);
+    --border-glow: rgba(255, 176, 58, 0.15);
+    
+    --text-primary: #f9fafb;
+    --text-secondary: #e5e7eb;
+    --text-muted: #9ca3af;
+    
+    /* ジャズクラブ・ネオンカラー */
+    --accent-amber: #fbbf24;
+    --accent-amber-glow: rgba(251, 191, 36, 0.3);
+    --accent-blue: #60a5fa;
+    --accent-blue-glow: rgba(96, 165, 250, 0.25);
+    --accent-purple: #a78bfa;
+    --accent-purple-glow: rgba(167, 139, 250, 0.25);
+    --accent-emerald: #34d399;
+    
+    /* ギター度数カラー */
+    --color-root: #f87171;
+    --color-3rd: #34d399;
+    --color-7th: #60a5fa;
+    --color-scale: #fbbf24;
+    
+    --font-heading: 'Outfit', sans-serif;
+    --font-body: 'Space Grotesk', sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    overflow-x: hidden;
+    line-height: 1.6;
+    position: relative;
+}
+
+/* 生成された高品質アート背景画像 ＋ グラデーションオーバーレイ */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        linear-gradient(to bottom, rgba(5, 7, 15, 0.85) 0%, rgba(5, 7, 15, 0.95) 100%),
+        url('assets/bg.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: -2;
+}
+
+.neon-glow-bg {
+    position: fixed;
+    top: 20%;
+    left: 30%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(167, 139, 250, 0.08) 0%, transparent 70%);
+    z-index: -1;
+    pointer-events: none;
+    filter: blur(60px);
+    animation: slow-drift 20s infinite alternate;
+}
+
+@keyframes slow-drift {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(100px, 50px) scale(1.2); }
+}
+
+.jazz-club-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    gap: 15px;
+}
+
+/* ====================================================
+   ヘッダー (洗練されたアイデンティティ)
+   ==================================================== */
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-glass);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    box-shadow: 
+        0 10px 40px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.logo-area {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.neon-guitar-icon {
+    font-size: 1.4rem;
+    color: var(--accent-amber);
+    filter: drop-shadow(0 0 8px var(--accent-amber-glow));
+    animation: guitar-vibe 3s infinite ease-in-out;
+}
+
+@keyframes guitar-vibe {
+    0%, 100% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(-5deg) scale(1.05); filter: drop-shadow(0 0 12px var(--accent-amber)); }
+}
+
+.logo-area h1 {
+    font-family: var(--font-heading);
+    font-size: 1.7rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    background: linear-gradient(135deg, #ffffff 30%, var(--accent-amber) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 2px 10px rgba(251, 191, 36, 0.15));
+}
+
+.tagline {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border-left: 1px solid var(--border-glass);
+    padding-left: 10px;
+    margin-left: 10px;
+    display: inline-block;
+}
+
+.user-status-card {
+    display: flex;
+    gap: 15px;
+    background: rgba(255, 255, 255, 0.02);
+    padding: 6px 15px;
+    border-radius: 8px;
+    border: 1px solid var(--border-glass);
+}
+
+.status-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
+}
+
+.status-item .label {
+    font-size: 0.62rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.status-item .label i {
+    font-size: 0.65rem;
+    color: var(--accent-amber);
+}
+
+.status-item .value {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    color: var(--accent-amber);
+    font-size: 0.95rem;
+    text-shadow: 0 0 8px var(--accent-amber-glow);
+}
+
+/* ====================================================
+   レイアウト grid
+   ==================================================== */
+.app-main-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+    flex: 1;
+}
+
+@media (min-width: 992px) {
+    .app-main-grid {
+        grid-template-columns: 240px 1fr;
+    }
+}
+
+/* ====================================================
+   サイドバー (ロードマップ)
+   ==================================================== */
+.sidebar-roadmap {
+    background: var(--bg-card);
+    border: 1px solid var(--border-glass);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    padding: 15px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    height: fit-content;
+}
+
+.section-title {
+    font-family: var(--font-heading);
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--border-glass);
+    padding-bottom: 6px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.roadmap-step-btn {
+    display: flex;
+    align-items: center;
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.01);
+    border: 1px solid rgba(255, 255, 255, 0.02);
+    border-radius: 10px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    width: 100%;
+    margin-bottom: 6px;
+}
+
+.roadmap-step-btn:hover:not(.locked) {
+    background: rgba(251, 191, 36, 0.04);
+    border-color: rgba(251, 191, 36, 0.2);
+    transform: translateX(4px);
+}
+
+.roadmap-step-btn.active {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.08) 0%, rgba(251, 191, 36, 0.02) 100%);
+    border-color: var(--accent-amber);
+    color: #fff;
+    box-shadow: 
+        0 4px 20px rgba(251, 191, 36, 0.08),
+        inset 0 1px 0 rgba(251, 191, 36, 0.15);
+}
+
+.roadmap-step-btn.locked {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.step-num {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 0.8rem;
+    color: var(--accent-amber);
+    width: 35px;
+}
+
+.step-name {
+    flex: 1;
+    font-size: 0.78rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.step-name i {
+    font-size: 0.75rem;
+    opacity: 0.8;
+}
+
+.lock-icon {
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+}
+
+/* ====================================================
+   メインコンテンツエリア
+   ==================================================== */
+.main-content-area {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.content-glass-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-glass);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    padding: 10px 18px;
+    box-shadow: 
+        0 15px 45px rgba(0, 0, 0, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.lesson-badge {
+    background: var(--accent-amber-glow);
+    color: var(--accent-amber);
+    border: 1px solid rgba(251, 191, 36, 0.2);
+    font-family: var(--font-heading);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 8px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.lesson-title {
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    font-weight: 800;
+    margin-top: 5px;
+    background: linear-gradient(135deg, #fff 60%, var(--text-muted) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.lesson-desc {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    line-height: 1.5;
+}
+
+/* インタラクティブステージ */
+.interactive-stage-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-glass);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    padding: 8px 16px;
+    box-shadow: 
+        0 15px 45px rgba(0, 0, 0, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.stage-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-glass);
+    padding-bottom: 6px;
+    margin-bottom: 10px;
+}
+
+.stage-title {
+    font-family: var(--font-heading);
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+.notation-toggles {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.toggle-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+/* 五線譜コンテナ */
+.staff-container {
+    background: rgba(8, 12, 24, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 8px 12px;
+    box-shadow: 
+        inset 0 2px 10px rgba(0, 0, 0, 0.8),
+        0 0 15px rgba(251, 191, 36, 0.05);
+    margin-bottom: 4px;
+}
+
+#svg-staff-wrapper {
+    width: 100%;
+    max-width: 800px;
+    overflow-x: auto;
+}
+
+#svg-staff-wrapper svg {
+    max-height: 85px;
+    width: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+.staff-tips {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+    text-align: center;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+/* ギター指板コンテナ */
+.fretboard-container {
+    background: #0f121a;
+    border: 1px solid var(--border-glass);
+    border-radius: 12px;
+    padding: 4px 10px 2px 10px;
+    box-shadow: 
+        inset 0 4px 20px rgba(0,0,0,0.9),
+        0 4px 15px rgba(0, 0, 0, 0.2);
+    overflow-x: auto;
+    position: relative;
+}
+
+#svg-fretboard-wrapper {
+    min-width: 900px;
+}
+
+#svg-fretboard-wrapper svg {
+    max-height: 120px;
+    width: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+.fretboard-legend {
+    display: flex;
+    gap: 20px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+    justify-content: center;
+    font-weight: 600;
+}
+
+.legend-dot {
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.legend-dot.root { color: var(--color-root); }
+.legend-dot.degree3 { color: var(--color-3rd); }
+.legend-dot.degree7 { color: var(--color-7th); }
+.legend-dot.scale { color: var(--color-scale); }
+
+/* ====================================================
+   プレミアムボタン
+   ==================================================== */
+.action-btn {
+    background: linear-gradient(135deg, var(--accent-amber) 0%, #d97706 100%);
+    color: #000;
+    border: none;
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 0.95rem;
+    letter-spacing: 0.5px;
+    padding: 10px 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 10px 25px rgba(217, 119, 6, 0.3);
+}
+
+.action-btn i {
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.action-btn:hover:not(:disabled) {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 
+        0 15px 30px rgba(217, 119, 6, 0.45),
+        0 0 15px var(--accent-amber-glow);
+}
+
+.action-btn:hover i {
+    transform: translateX(3px) scale(1.1);
+}
+
+.action-btn:active:not(:disabled) {
+    transform: translateY(0) scale(0.98);
+}
+
+.secondary-btn {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-glass);
+    color: var(--text-secondary);
+    font-family: var(--font-heading);
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 8px 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.secondary-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+.secondary-btn i {
+    transition: transform 0.3s;
+    font-size: 0.85rem;
+}
+
+.secondary-btn:hover i {
+    transform: scale(1.15);
+    color: var(--accent-amber);
+}
+
+.toggle-btn {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-glass);
+    color: var(--text-muted);
+    padding: 8px 16px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-primary);
+}
+
+.toggle-btn.active {
+    background: linear-gradient(135deg, var(--accent-amber) 0%, #d97706 100%);
+    color: #000;
+    font-weight: 700;
+    border-color: var(--accent-amber);
+    box-shadow: 0 0 10px var(--accent-amber-glow);
+}
+
+/* ====================================================
+   ゲーム HUD ＆ クイズ
+   ==================================================== */
+.game-hud {
+    background: rgba(5, 7, 15, 0.55);
+    border: 1px solid var(--border-glass);
+    padding: 12px 20px;
+    border-radius: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.4);
+}
+
+.hud-item {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.hud-item i {
+    color: var(--accent-amber);
+}
+
+.hud-item .value {
+    color: var(--accent-amber);
+    font-weight: 700;
+    font-size: 1rem;
+    text-shadow: 0 0 8px var(--accent-amber-glow);
+}
+
+.game-quiz-box {
+    background: rgba(5, 7, 15, 0.3);
+    border: 1px solid var(--border-glass);
+    border-radius: 16px;
+    padding: 25px;
+    margin-top: 15px;
+}
+
+.quiz-instruction {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 20px;
+    text-align: center;
+    letter-spacing: 0.5px;
+}
+
+.quiz-options {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.quiz-opt-btn {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-glass);
+    color: var(--text-primary);
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 1.1rem;
+    padding: 10px 0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.quiz-opt-btn:hover {
+    background: linear-gradient(135deg, var(--accent-amber) 0%, #d97706 100%);
+    color: #000;
+    border-color: var(--accent-amber);
+    transform: translateY(-2px);
+    box-shadow: 
+        0 8px 16px rgba(217, 119, 6, 0.3),
+        0 0 10px var(--accent-amber-glow);
+}
+
+/* ====================================================
+   ビートトラッカー (スウィングタイム)
+   ==================================================== */
+.beat-dot {
+    transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+    background: rgba(255, 255, 255, 0.02);
+    color: var(--text-muted);
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+    border: 1px solid var(--border-glass);
+}
+
+.beat-dot.active {
+    background: linear-gradient(135deg, var(--accent-amber) 0%, #d97706 100%);
+    color: #000;
+    border-color: var(--accent-amber);
+    box-shadow: 0 0 12px var(--accent-amber-glow);
+}
+
+/* ====================================================
+   フッター (Tips ＆ コピーライト)
+   ==================================================== */
+.app-footer {
+    background: var(--bg-card);
+    border: 1px solid var(--border-glass);
+    border-radius: 12px;
+    padding: 6px 15px;
+    backdrop-filter: blur(20px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.tips-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.tips-badge {
+    background: rgba(96, 165, 250, 0.15);
+    color: var(--accent-blue);
+    border: 1px solid rgba(96, 165, 250, 0.3);
+    padding: 3px 8px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    border-radius: 6px;
+    letter-spacing: 1px;
+}
+
+#dynamic-tips {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+.footer-credit {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+/* ====================================================
+   ログインモーダル ＆ ヘッダー制御
+   ==================================================== */
+.header-user-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.login-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(5, 7, 15, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.login-modal-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-glass);
+    border-radius: 20px;
+    width: 92%;
+    max-width: 380px;
+    padding: 25px;
+    box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.8),
+        inset 0 1px 0 rgba(255,255,255,0.05);
+    position: relative;
+    box-sizing: border-box;
+}
+
+.modal-close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: color 0.3s;
+    padding: 5px;
+}
+
+.modal-close-btn:hover {
+    color: #fff;
+}
+
+.modal-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-glass);
+    margin-bottom: 20px;
+}
+
+.modal-tab-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    font-weight: 700;
+    padding: 8px 0;
+    cursor: pointer;
+    transition: all 0.3s;
+    border-bottom: 2px solid transparent;
+}
+
+.modal-tab-btn.active {
+    color: var(--accent-amber);
+    border-bottom-color: var(--accent-amber);
+    text-shadow: 0 0 8px var(--accent-amber-glow);
+}
+
+.modal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.form-group label {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.form-group label i {
+    color: var(--accent-amber);
+    font-size: 0.8rem;
+}
+
+.form-group input {
+    background: rgba(0, 0, 0, 0.45);
+    border: 1px solid var(--border-glass);
+    border-radius: 8px;
+    color: #fff;
+    padding: 10px 12px;
+    font-family: inherit;
+    font-size: 0.88rem;
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.form-group input:focus {
+    border-color: var(--accent-amber);
+    box-shadow: 0 0 8px rgba(251, 191, 36, 0.15);
+}
+
+.form-error-msg {
+    font-size: 0.75rem;
+    color: var(--color-root);
+    font-weight: 600;
+    min-height: 16px;
+}
+
+/* ====================================================
+   スマホ・タブレット用レスポンシブメディアクエリ
+   ==================================================== */
+@media (max-width: 991px) {
+    .app-header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: center;
+        padding: 12px 15px;
+        text-align: center;
+    }
+    
+    .logo-area {
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .tagline {
+        display: none; /* スマホではタグラインを非表示にして省スペース化 */
+    }
+    
+    .header-user-controls {
+        width: 100%;
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+    }
+    
+    .user-status-card {
+        width: 100%;
+        justify-content: space-around;
+        box-sizing: border-box;
+        padding: 8px 10px;
+    }
+    
+    .status-item {
+        align-items: center;
+    }
+    
+    /* ロードマップ：スマホ画面では横スクロールのタブ型に変化 */
+    .sidebar-roadmap {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 10px 12px;
+    }
+    
+    .roadmap-steps {
+        display: flex;
+        overflow-x: auto;
+        flex-direction: row;
+        gap: 8px;
+        padding: 2px 0 8px 0;
+        scrollbar-width: none; /* Firefox用スクロールバー隠し */
+        -ms-overflow-style: none; /* IE用 */
+    }
+    
+    .roadmap-steps::-webkit-scrollbar {
+        display: none; /* Chrome, Safari用スクロールバー隠し */
+    }
+    
+    .roadmap-step-btn {
+        flex: 0 0 auto;
+        width: auto;
+        margin-bottom: 0 !important;
+        white-space: nowrap;
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+
+    .roadmap-step-btn .step-name {
+        font-size: 0.75rem;
+    }
+    
+    .app-footer {
+        flex-direction: column;
+        text-align: center;
+        gap: 8px;
+        padding: 10px 15px;
+    }
+    
+    .tips-container {
+        flex-direction: column;
+        gap: 4px;
+        text-align: center;
+    }
+    
+    .footer-credit {
+        font-size: 0.7rem;
+    }
+    
+    .interactive-stage-card {
+        padding: 8px 10px;
+    }
+    
+    .stage-header {
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-start;
+    }
+    
+    .notation-toggles {
+        width: 100%;
+        justify-content: space-between;
+    }
+}

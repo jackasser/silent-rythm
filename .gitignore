@@ -1,0 +1,8 @@
+# Screenshots and temporary logs
+*.png
+.antigravity/
+
+# OS generated files
+Thumbs.db
+Desktop.ini
+.DS_Store
