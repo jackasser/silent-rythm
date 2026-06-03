@@ -2906,7 +2906,7 @@ class SilentRhythmApp {
             }
             const staffReadout = document.getElementById('staff-readout');
             if (staffReadout) {
-                const stringNames = ['1弦 (E)', '2弦 (B)', '3弦 (G)', '4弦 (D)', '5弦 (A)', '6弦 (E)'];
+                const stringNames = ['1弦', '2弦', '3弦', '4弦', '5弦', '6弦'];
                 const stringLabel = stringNames[stringIndex] || `${stringIndex + 1}弦`;
                 staffReadout.textContent = `${stringLabel} ${fret}フレットの音名は何でしょう？`;
             }
@@ -2941,7 +2941,7 @@ class SilentRhythmApp {
             const staffReadout = document.getElementById('staff-readout');
             if (staffReadout) {
                 const notationName = this.fretboard.getNoteNameFromMidi(midi);
-                const stringNames = ['1弦 (E)', '2弦 (B)', '3弦 (G)', '4弦 (D)', '5弦 (A)', '6弦 (E)'];
+                const stringNames = ['1弦', '2弦', '3弦', '4弦', '5弦', '6弦'];
                 const stringLabel = stringNames[this.gameState.currentString] || `${this.gameState.currentString + 1}弦`;
                 staffReadout.textContent = `${stringLabel} ${this.gameState.currentFret}フレットの音名は「 ${notationName} 」です！`;
             }
@@ -2966,7 +2966,7 @@ class SilentRhythmApp {
         const currentFret = this.gameState.currentFret;
         const notationName = this.fretboard.getNoteNameFromMidi(this.gameState.currentMidi);
 
-        const stringNames = ['1弦 (E)', '2弦 (B)', '3弦 (G)', '4弦 (D)', '5弦 (A)', '6弦 (E)'];
+        const stringNames = ['1弦', '2弦', '3弦', '4弦', '5弦', '6弦'];
         const stringLabel = stringNames[this.gameState.currentString] || `${currentString}弦`;
 
         panel.innerHTML = `
