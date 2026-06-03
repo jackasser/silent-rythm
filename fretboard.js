@@ -12,6 +12,7 @@ class InteractiveFretboard {
         this.openStrings = [64, 59, 55, 50, 45, 40]; // E4, B3, G3, D3, A2, E2
         this.activeMarkers = new Map();
         this.showAllNotes = false; // 全音表示モード用
+        this.displayMode = 'notes'; // 'notes' or 'degrees'
         
         this.showOctaves = false;
         this.selectedPitchClass = null;
@@ -441,6 +442,10 @@ class InteractiveFretboard {
         }, 250);
     }
 
+    setDisplayMode(mode) {
+        this.displayMode = mode;
+    }
+
     clearMarkers() {
         this.activeMarkers.clear();
         this.markersGroup.innerHTML = '';
@@ -498,7 +503,8 @@ class InteractiveFretboard {
                             'root': 'var(--color-root)',
                             '3rd': 'var(--color-3rd)',
                             '7th': 'var(--color-7th)',
-                            'scale': 'var(--color-scale)'
+                            'scale': 'var(--color-scale)',
+                            'question': 'var(--accent-purple)'
                         };
                         markerColor = colorMap[type] || 'var(--accent-amber)';
                         glowFilter = `drop-shadow(0px 0px 6px ${markerColor})`;
@@ -528,7 +534,17 @@ class InteractiveFretboard {
                     text.setAttribute('font-weight', '800');
                     text.setAttribute('opacity', opacity);
                     text.setAttribute('text-anchor', 'middle');
-                    text.textContent = this.getNoteNameFromMidi(midi);
+                    let labelText = this.getNoteNameFromMidi(midi);
+                    if (this.displayMode === 'degrees') {
+                        const degreeLabels = {
+                            'root': 'R',
+                            '3rd': '3',
+                            '7th': '7',
+                            'scale': 'S'
+                        };
+                        labelText = degreeLabels[type] || '•';
+                    }
+                    text.textContent = type === 'question' ? '?' : labelText;
                     
                     const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
                     group.appendChild(circle);

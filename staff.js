@@ -6,11 +6,19 @@ class InteractiveStaff {
         this.onNoteChanged = onNoteChanged;
         
         this.width = 750;
-        this.height = 180;
+        this.height = 280;
         this.lineSpacing = 16;
-        this.topLineY = 50;
+        this.topLineY = 90;
         
         this.whiteNotes = [
+            { midi: 40, name: 'E2', step: -12 },
+            { midi: 41, name: 'F2', step: -11 },
+            { midi: 43, name: 'G2', step: -10 },
+            { midi: 45, name: 'A2', step: -9 },
+            { midi: 47, name: 'B2', step: -8 },
+            { midi: 48, name: 'C3', step: -7 },
+            { midi: 50, name: 'D3', step: -6 },
+            { midi: 52, name: 'E3', step: -5 },
             { midi: 53, name: 'F3', step: -4 },
             { midi: 55, name: 'G3', step: -3 },
             { midi: 57, name: 'A3', step: -2 },
@@ -28,10 +36,16 @@ class InteractiveStaff {
             { midi: 77, name: 'F5', step: 10 }, // 第5線
             { midi: 79, name: 'G5', step: 11 }, // 第5間
             { midi: 81, name: 'A5', step: 12 }, // 上第一線
-            { midi: 83, name: 'B5', step: 13 }
+            { midi: 83, name: 'B5', step: 13 },
+            { midi: 84, name: 'C6', step: 14 },
+            { midi: 86, name: 'D6', step: 15 },
+            { midi: 88, name: 'E6', step: 16 },
+            { midi: 89, name: 'F6', step: 17 },
+            { midi: 91, name: 'G6', step: 18 },
+            { midi: 93, name: 'A6', step: 19 }
         ];
         
-        this.currentNote = this.whiteNotes[4]; // C4
+        this.currentNote = this.whiteNotes.find(n => n.midi === 60) || this.whiteNotes[12]; // C4
         this.isDragging = false;
         this.svg = null;
         this.noteEl = null;
@@ -156,27 +170,39 @@ class InteractiveStaff {
         };
         
         const baseName = note.name.substring(0, 1);
-        const octave = note.name.substring(1);
+        const hasSharp = note.name.includes('#');
+        const octave = note.name.replace(/[^0-9]/g, '');
+        const suffix = hasSharp ? '#' : '';
         
         if (this.notation === 'doremi') {
-            return nameMapDoReMi[baseName] + octave;
+            return nameMapDoReMi[baseName] + suffix + octave;
         } else {
-            return nameMapCDE[baseName] + octave;
+            return nameMapCDE[baseName] + suffix + octave;
         }
     }
 
     // 音符の描画 (GSAP を用いた滑らかなスナップ・イージングに対応)
     drawNote(animate = true) {
+        // If the current noteEl is a chord stack group, remove it and reconstruct a single draggable note
+        if (this.noteEl && this.noteEl.classList && !this.noteEl.classList.contains('draggable-note')) {
+            if (this.noteEl.parentNode) {
+                this.noteEl.parentNode.removeChild(this.noteEl);
+            }
+            this.noteEl = null;
+        }
+
         const x = this.width / 2 + 30;
         const targetY = this.getNoteY(this.currentNote.step);
         
+        let head, stem, label, accidental;
+
         // 初回描画、または音符グループが無い場合は新しく作成
         if (!this.noteEl) {
             this.noteEl = document.createElementNS('http://www.w3.org/2000/svg', 'g');
             this.noteEl.setAttribute('class', 'draggable-note');
             
             // 符頭
-            const head = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+            head = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
             head.setAttribute('id', 'note-head-shape');
             head.setAttribute('cx', x);
             head.setAttribute('cy', targetY);
@@ -186,15 +212,24 @@ class InteractiveStaff {
             head.setAttribute('filter', 'url(#note-glow)');
             head.setAttribute('transform', `rotate(-28, ${x}, ${targetY})`);
             
+            // 変化記号 (シャープ)
+            accidental = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            accidental.setAttribute('id', 'note-accidental-shape');
+            accidental.setAttribute('fill', '#ffffff');
+            accidental.setAttribute('font-family', 'var(--font-heading)');
+            accidental.setAttribute('font-weight', '800');
+            accidental.setAttribute('font-size', '26px');
+            accidental.setAttribute('text-anchor', 'middle');
+            
             // 符尾
-            const stem = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            stem = document.createElementNS('http://www.w3.org/2000/svg', 'line');
             stem.setAttribute('id', 'note-stem-shape');
             stem.setAttribute('stroke', '#ffffff');
             stem.setAttribute('stroke-width', '2.5');
             stem.setAttribute('stroke-linecap', 'round');
             
             // ラベル
-            const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
             label.setAttribute('id', 'note-label-shape');
             label.setAttribute('x', x + 30);
             label.setAttribute('y', targetY + 6);
@@ -205,14 +240,16 @@ class InteractiveStaff {
             label.setAttribute('filter', 'drop-shadow(0 0 6px var(--accent-amber-glow))');
             
             this.noteEl.appendChild(head);
+            this.noteEl.appendChild(accidental);
             this.noteEl.appendChild(stem);
             this.noteEl.appendChild(label);
             this.svg.appendChild(this.noteEl);
+        } else {
+            head = this.noteEl.querySelector ? this.noteEl.querySelector('#note-head-shape') : document.getElementById('note-head-shape');
+            stem = this.noteEl.querySelector ? this.noteEl.querySelector('#note-stem-shape') : document.getElementById('note-stem-shape');
+            label = this.noteEl.querySelector ? this.noteEl.querySelector('#note-label-shape') : document.getElementById('note-label-shape');
+            accidental = this.noteEl.querySelector ? this.noteEl.querySelector('#note-accidental-shape') : document.getElementById('note-accidental-shape');
         }
-
-        const head = this.svg.getElementById('note-head-shape');
-        const stem = this.svg.getElementById('note-stem-shape');
-        const label = this.svg.getElementById('note-label-shape');
         
         // 符尾の長さと向きの計算
         const stemLength = this.lineSpacing * 3.5;
@@ -229,6 +266,19 @@ class InteractiveStaff {
             sY1 = targetY;
             sX2 = stemX;
             sY2 = targetY - stemLength;
+        }
+
+        // 変化記号 (シャープ) の表示と位置合わせ
+        if (accidental) {
+            accidental.textContent = this.currentNote.isSharp ? '♯' : '';
+            const accX = x - this.lineSpacing * 1.8;
+            const accY = targetY + 8;
+            if (animate && window.gsap) {
+                window.gsap.to(accidental, { attr: { x: accX, y: accY }, duration: 0.45, ease: "elastic.out(1, 0.6)" });
+            } else {
+                accidental.setAttribute('x', accX);
+                accidental.setAttribute('y', accY);
+            }
         }
 
         // GSAP を用いたウルトラスムーズアニメーション (スナップ時や外部同期時に elastic イージング)
@@ -261,18 +311,15 @@ class InteractiveStaff {
         const step = this.currentNote.step;
         
         if (step <= 0) {
-            const c4Y = this.getNoteY(0);
-            const a3Y = this.getNoteY(-2);
-            const f3Y = this.getNoteY(-4);
-            
-            if (step <= 0) this.createLedgerLine(x, c4Y);
-            if (step <= -2) this.createLedgerLine(x, a3Y);
-            if (step <= -4) this.createLedgerLine(x, f3Y);
+            for (let s = 0; s >= step; s -= 2) {
+                this.createLedgerLine(x, this.getNoteY(s));
+            }
         }
         
         if (step >= 12) {
-            const a5Y = this.getNoteY(12);
-            if (step >= 12) this.createLedgerLine(x, a5Y);
+            for (let s = 12; s <= step; s += 2) {
+                this.createLedgerLine(x, this.getNoteY(s));
+            }
         }
     }
 
@@ -293,8 +340,8 @@ class InteractiveStaff {
         const stepHeight = this.lineSpacing / 2;
         const rawStep = Math.round((firstLineY - y) / stepHeight) + 2;
         
-        const minStep = -4;
-        const maxStep = 13;
+        const minStep = -12;
+        const maxStep = 19;
         const step = Math.max(minStep, Math.min(maxStep, rawStep));
         
         return this.whiteNotes.find(n => n.step === step) || this.currentNote;
@@ -372,26 +419,41 @@ class InteractiveStaff {
     }
 
     setNoteByMidi(midi, animate = true) {
-        let note = this.whiteNotes.find(n => n.midi === midi);
+        const sharps = [1, 3, 6, 8, 10]; // C#, D#, F#, G#, A# in pitch classes
+        const pitchClass = midi % 12;
+        const isSharp = sharps.includes(pitchClass);
         
-        if (!note) {
+        let targetMidi = midi;
+        if (isSharp) {
+            targetMidi = midi - 1; // Map to the natural note below
+        }
+        
+        let baseNote = this.whiteNotes.find(n => n.midi === targetMidi);
+        if (!baseNote) {
             let minDiff = 999;
             this.whiteNotes.forEach(n => {
                 const diff = Math.abs(n.midi - midi);
                 if (diff < minDiff) {
                     minDiff = diff;
-                    note = n;
+                    baseNote = n;
                 }
             });
         }
         
-        if (note && note.midi !== this.currentNote.midi) {
-            this.currentNote = note;
-            this.drawNote(animate); // 指板クリック時などはGSAPで滑らかに移動
+        if (baseNote) {
+            const hasSharpName = baseNote.name.substring(0, 1) + (isSharp ? '#' : '') + baseNote.name.substring(1);
+            this.currentNote = {
+                midi: midi,
+                step: baseNote.step,
+                isSharp: isSharp,
+                name: hasSharpName
+            };
+            
+            this.drawNote(animate);
             
             const readout = document.getElementById('staff-readout');
             if (readout) {
-                readout.textContent = `選択された音: ${this.getNoteName(note)}`;
+                readout.textContent = `選択された音: ${this.getNoteName(this.currentNote)}`;
             }
         }
     }
@@ -399,6 +461,103 @@ class InteractiveStaff {
     setNotation(type) {
         this.notation = type;
         this.drawNote(false);
+    }
+
+    setChordNotes(midiNotes, degrees = []) {
+        // Clear existing note elements and ledger lines
+        if (this.noteEl) {
+            this.svg.removeChild(this.noteEl);
+            this.noteEl = null;
+        }
+        this.ledgerLinesEl.innerHTML = '';
+
+        if (midiNotes.length === 0) return;
+
+        // Create group container for chord notes
+        this.noteEl = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        this.noteEl.setAttribute('class', 'chord-stack-group');
+
+        const x = this.width / 2 + 30;
+
+        midiNotes.forEach((midi, index) => {
+            const sharps = [1, 3, 6, 8, 10]; // C#, D#, F#, G#, A# in pitch classes
+            const pitchClass = midi % 12;
+            const isSharp = sharps.includes(pitchClass);
+            
+            let targetMidi = midi;
+            if (isSharp) {
+                targetMidi = midi - 1; // Map to the natural note below
+            }
+            
+            let baseNote = this.whiteNotes.find(n => n.midi === targetMidi);
+            if (!baseNote) {
+                let minDiff = 999;
+                this.whiteNotes.forEach(n => {
+                    const diff = Math.abs(n.midi - midi);
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        baseNote = n;
+                    }
+                });
+            }
+            
+            if (baseNote) {
+                const targetY = this.getNoteY(baseNote.step);
+                
+                // Color note heads by their degree role
+                const degreeColors = {
+                    'root': 'var(--color-root)',
+                    '3rd': 'var(--color-3rd)',
+                    '5th': '#9ca3af',
+                    '7th': 'var(--color-7th)',
+                    'scale': 'var(--color-scale)'
+                };
+                const color = degreeColors[degrees[index]] || 'url(#note-grad)';
+                
+                // Draw head
+                const head = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+                head.setAttribute('cx', x);
+                head.setAttribute('cy', targetY);
+                head.setAttribute('rx', this.lineSpacing * 0.72);
+                head.setAttribute('ry', this.lineSpacing * 0.48);
+                head.setAttribute('fill', color);
+                head.setAttribute('filter', 'url(#note-glow)');
+                head.setAttribute('transform', `rotate(-28, ${x}, ${targetY})`);
+                this.noteEl.appendChild(head);
+                
+                // Draw accidental (sharp)
+                if (isSharp) {
+                    const accidental = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    accidental.setAttribute('fill', '#ffffff');
+                    accidental.setAttribute('font-family', 'var(--font-heading)');
+                    accidental.setAttribute('font-weight', '800');
+                    accidental.setAttribute('font-size', '26px');
+                    accidental.setAttribute('text-anchor', 'middle');
+                    accidental.textContent = '♯';
+                    accidental.setAttribute('x', x - this.lineSpacing * 1.8);
+                    accidental.setAttribute('y', targetY + 9);
+                    this.noteEl.appendChild(accidental);
+                }
+                
+                // Add ledger lines
+                this.drawLedgerLinesForStep(x, baseNote.step);
+            }
+        });
+
+        this.svg.appendChild(this.noteEl);
+    }
+
+    drawLedgerLinesForStep(x, step) {
+        if (step <= 0) {
+            for (let s = 0; s >= step; s -= 2) {
+                this.createLedgerLine(x, this.getNoteY(s));
+            }
+        }
+        if (step >= 12) {
+            for (let s = 12; s <= step; s += 2) {
+                this.createLedgerLine(x, this.getNoteY(s));
+            }
+        }
     }
 }
 
