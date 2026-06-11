@@ -274,7 +274,7 @@ class SilentRhythmApp {
             btnLogout.addEventListener('click', () => {
                 localStorage.removeItem('sr_current_user');
                 this.loadCurrentUser();
-                this.switchStep('0a');
+                this.switchStep('1');
                 alert('ログアウトしました。ゲストモードに移行します。');
             });
         }
@@ -365,7 +365,7 @@ class SilentRhythmApp {
                     password: password,
                     nickname: nickname,
                     score: 0,
-                    unlockedSteps: ['0a', '0b', '1', '2', '3', '4']
+                    unlockedSteps: ['1', '2', '3', '4', '5', '6']
                 };
                 localStorage.setItem('sr_users', JSON.stringify(users));
                 localStorage.setItem('sr_current_user', username);
@@ -385,7 +385,7 @@ class SilentRhythmApp {
                     }
                 }
                 
-                this.switchStep('0a');
+                this.switchStep('1');
                 alert(`登録が完了し、自動ログインしました。ようこそ、${nickname}さん！`);
             });
         }
@@ -1268,7 +1268,7 @@ class SilentRhythmApp {
     }
 
     updateBuilderVisualization() {
-        if (this.currentStep !== '0b') return;
+        if (this.currentStep !== '2') return;
         
         const midiStack = this.calculateCurrentMidiStack();
         const degrees = this.calculateCurrentDegrees(midiStack);
@@ -1370,6 +1370,9 @@ class SilentRhythmApp {
                     </button>
                     <button class="secondary-btn" id="btn-start-game-hunter" style="background: linear-gradient(135deg, var(--accent-purple) 0%, #6366f1 100%); border: none; color: white;">
                         <i class="fa-solid fa-stopwatch"></i> 音名ハント (時間制限ゲーム)
+                    </button>
+                    <button class="secondary-btn" id="btn-start-memorize" style="background: linear-gradient(135deg, var(--accent-emerald) 0%, #059669 100%); border: none; color: white; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35);">
+                        <i class="fa-solid fa-eye"></i> 見てるだけ暗記モード (オートラーニング)
                     </button>
                 </div>
             `;
@@ -1759,6 +1762,10 @@ class SilentRhythmApp {
         if (btnNoterun) btnNoterun.addEventListener('click', () => this.startNoteRunGame());
         const btnHunter = document.getElementById('btn-start-game-hunter');
         if (btnHunter) btnHunter.addEventListener('click', () => this.startFretboardHunterGame());
+        const btnMemorize = document.getElementById('btn-start-memorize');
+        if (btnMemorize) btnMemorize.addEventListener('click', () => this.startMemorizeMode());
+        const btnMemorize0a = document.getElementById('btn-start-memorize-0a');
+        if (btnMemorize0a) btnMemorize0a.addEventListener('click', () => this.startMemorizeMode());
 
         // Lesson 3 シェルコードフォーム
         if (this.currentStep === '1' && this.currentLesson === 3) {
@@ -1862,7 +1869,7 @@ class SilentRhythmApp {
         
         midiNotes.forEach((midi, i) => {
             setTimeout(() => {
-                if (this.currentStep !== '0b') return;
+                if (this.currentStep !== '2') return;
                 
                 const type = i === 0 ? 'root' : (i === 1 ? '3rd' : (i === 3 ? '7th' : 'scale'));
                 this.fretboard.addMarker(midi, type);
@@ -1877,7 +1884,7 @@ class SilentRhythmApp {
         });
 
         setTimeout(() => {
-            if (this.currentStep !== '0b') return;
+            if (this.currentStep !== '2') return;
             window.audioEngine.playChord(midiNotes, 1.2, 0.3);
             if (readout) {
                 readout.textContent = `完成: ${chordName} の響き！`;
@@ -1918,7 +1925,7 @@ class SilentRhythmApp {
         
         scaleNotes.slice(0, 8).forEach((midi, i) => {
             setTimeout(() => {
-                if (this.currentStep !== '0b') return;
+                if (this.currentStep !== '2') return;
                 window.audioEngine.playNote(midi, 0.3, 0.3);
             }, i * 150);
         });
@@ -2815,7 +2822,7 @@ class SilentRhythmApp {
         if (btnQuit) {
             btnQuit.addEventListener('click', () => {
                 this.cleanupActiveGame();
-                this.switchStep('0a');
+                this.switchStep('1');
             });
         }
     }
@@ -2889,7 +2896,7 @@ class SilentRhythmApp {
         const finalScore = Math.min(100, this.gameState.score * 15);
         this.addScore(finalScore);
         const passed = this.gameState.score >= 5; // 5音名クリアで合格
-        if (passed) this.unlockStep('0b');
+        if (passed) this.unlockStep('2');
         
         const panel = document.getElementById('lesson-panel');
         panel.innerHTML = `
@@ -2910,21 +2917,24 @@ class SilentRhythmApp {
                 </div>
                 
                 <p style="margin-bottom: 25px; font-size: 0.85rem; color: var(--text-muted); max-width: 420px; line-height: 1.5;">
-                    ${passed ? '合格ライン(5音名クリア以上)をクリア！次のステップ「Step 0-B: コード＆スケール」が解放されました。' : '惜しい！5音名以上のクリアで合格となり、次のステップが解放されます。繰り返し練習してみましょう！'}
+                    ${passed ? '合格ライン(5音名クリア以上)をクリア！次の段階「Phase 2: コード構造＆度数」が解放されました。Lesson 03に進みましょう！' : '惜しい！5音名以上のクリアで合格となり、次の段階が解放されます。繰り返し練習してみましょう！'}
                 </p>
 
                 <div style="display: flex; gap: 15px; flex-wrap: wrap;">
                     <button class="action-btn" id="btn-restart-noterun"><i class="fa-solid fa-rotate-left"></i> もう一度プレイ</button>
                     <button class="secondary-btn" id="btn-exit-noterun"><i class="fa-solid fa-xmark"></i> 解説に戻る</button>
-                    ${passed ? `<button class="action-btn" id="btn-go-to-0b" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);"><i class="fa-solid fa-chevron-right"></i> Step 0-B へ進む</button>` : ''}
+                    ${passed ? `<button class="action-btn" id="btn-go-to-0b" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);"><i class="fa-solid fa-chevron-right"></i> Lesson 03 へ進む</button>` : ''}
                 </div>
             </div>
         `;
 
         document.getElementById('btn-restart-noterun').addEventListener('click', () => this.startNoteRunGame());
-        document.getElementById('btn-exit-noterun').addEventListener('click', () => this.switchStep('0a'));
+        document.getElementById('btn-exit-noterun').addEventListener('click', () => this.switchStep('1'));
         if (passed) {
-            document.getElementById('btn-go-to-0b').addEventListener('click', () => this.switchStep('0b'));
+            document.getElementById('btn-go-to-0b').addEventListener('click', () => {
+                this.currentLesson = 3;
+                this.switchStep('1');
+            });
         }
     }
 
@@ -3004,7 +3014,7 @@ class SilentRhythmApp {
         if (btnQuit) {
             btnQuit.addEventListener('click', () => {
                 this.cleanupActiveGame();
-                this.switchStep('0b');
+                this.switchStep('1');
             });
         }
     }
@@ -3066,7 +3076,7 @@ class SilentRhythmApp {
         const percentage = Math.round((found / total) * 100);
         this.addScore(percentage);
         const passed = percentage >= 80;
-        if (passed) this.unlockStep('1');
+        if (passed) this.unlockStep('2');
 
         const panel = document.getElementById('lesson-panel');
         panel.innerHTML = `
@@ -3084,21 +3094,24 @@ class SilentRhythmApp {
                 </div>
                 
                 <p style="margin-bottom: 25px; font-size: 0.85rem; color: var(--text-muted); max-width: 420px; line-height: 1.5;">
-                    ${passed ? '合格ライン(80%以上ハント)をクリア！「Step 1: タイム＆スウィング」が解放されました。' : '惜しい！80%以上のハントで次のステップが解放されます。もう一度指板の幾何学パターンを意識して探してみましょう。'}
+                    ${passed ? '合格ライン(80%以上ハント)をクリア！「Phase 2: コード構造＆度数」が解放されました。Lesson 03に進みましょう！' : '惜しい！80%以上のハントで次の段階が解放されます。もう一度指板の幾何学パターンを意識して探してみましょう。'}
                 </p>
 
                 <div style="display: flex; gap: 15px; flex-wrap: wrap;">
                     <button class="action-btn" id="btn-restart-hunter"><i class="fa-solid fa-rotate-left"></i> もう一度プレイ</button>
                     <button class="secondary-btn" id="btn-exit-hunter"><i class="fa-solid fa-xmark"></i> 解説に戻る</button>
-                    ${passed ? `<button class="action-btn" id="btn-go-to-1" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);"><i class="fa-solid fa-chevron-right"></i> Step 1 へ進む</button>` : ''}
+                    ${passed ? `<button class="action-btn" id="btn-go-to-1" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);"><i class="fa-solid fa-chevron-right"></i> Lesson 03 へ進む</button>` : ''}
                 </div>
             </div>
         `;
 
         document.getElementById('btn-restart-hunter').addEventListener('click', () => this.startFretboardHunterGame());
-        document.getElementById('btn-exit-hunter').addEventListener('click', () => this.switchStep('0b'));
+        document.getElementById('btn-exit-hunter').addEventListener('click', () => this.switchStep('1'));
         if (passed) {
-            document.getElementById('btn-go-to-1').addEventListener('click', () => this.switchStep('1'));
+            document.getElementById('btn-go-to-1').addEventListener('click', () => {
+                this.currentLesson = 3;
+                this.switchStep('1');
+            });
         }
     }
 
@@ -3166,7 +3179,7 @@ class SilentRhythmApp {
         if (btnQuit) {
             btnQuit.addEventListener('click', () => {
                 this.cleanupActiveGame();
-                this.switchStep('2');
+                this.switchStep('5');
             });
         }
     }
@@ -3244,7 +3257,7 @@ class SilentRhythmApp {
         const passed = correct === total;
         this.addScore(correct * 50);
         
-        if (passed) this.unlockStep('3');
+        if (passed) this.unlockStep('6');
 
         const panel = document.getElementById('lesson-panel');
         panel.innerHTML = `
@@ -3262,21 +3275,21 @@ class SilentRhythmApp {
                 </div>
                 
                 <p style="margin-bottom: 25px; font-size: 0.85rem; color: var(--text-muted); max-width: 420px; line-height: 1.5;">
-                    ${passed ? '全問正解で合格！「Step 3: アドリブ・着地」が解放されました。' : 'ライフが尽きるか、間違えた問題があります。全問正解で次のステップに進めます！練習してもう一度挑みましょう。'}
+                    ${passed ? '全問正解で合格！「Phase 6: 実践セッション」が解放されました。' : 'ライフが尽きるか、間違えた問題があります。全問正解で次のフェーズに進めます！練習してもう一度挑みましょう。'}
                 </p>
 
                 <div style="display: flex; gap: 15px; flex-wrap: wrap;">
                     <button class="action-btn" id="btn-restart-builder"><i class="fa-solid fa-rotate-left"></i> もう一度プレイ</button>
                     <button class="secondary-btn" id="btn-exit-builder"><i class="fa-solid fa-xmark"></i> 解説に戻る</button>
-                    ${passed ? `<button class="action-btn" id="btn-go-to-3" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);"><i class="fa-solid fa-chevron-right"></i> Step 3 へ進む</button>` : ''}
+                    ${passed ? `<button class="action-btn" id="btn-go-to-3" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);"><i class="fa-solid fa-chevron-right"></i> Phase 6 へ進む</button>` : ''}
                 </div>
             </div>
         `;
 
         document.getElementById('btn-restart-builder').addEventListener('click', () => this.startVoicingBuilderGame());
-        document.getElementById('btn-exit-builder').addEventListener('click', () => this.switchStep('2'));
+        document.getElementById('btn-exit-builder').addEventListener('click', () => this.switchStep('5'));
         if (passed) {
-            document.getElementById('btn-go-to-3').addEventListener('click', () => this.switchStep('3'));
+            document.getElementById('btn-go-to-3').addEventListener('click', () => this.switchStep('6'));
         }
     }
 
@@ -3496,7 +3509,7 @@ class SilentRhythmApp {
             btnQuit.addEventListener('click', () => {
                 window.audioEngine.stopBackingTrack();
                 this.cleanupActiveGame();
-                this.switchStep('1');
+                this.switchStep('5');
             });
         }
     }
@@ -3512,7 +3525,7 @@ class SilentRhythmApp {
         const { maxCombo } = gs;
 
         this.addScore(finalScore);
-        if (passed) this.unlockStep('2');
+        if (passed) this.unlockStep('6');
         this.cleanupActiveGame();
 
         if (passed) this.triggerConfetti();
@@ -3545,22 +3558,22 @@ class SilentRhythmApp {
 
                 <p style="margin-bottom: 25px; font-size: 0.85rem; color: var(--text-muted); max-width: 460px; line-height: 1.5;">
                     ${passed
-                        ? '合格ライン(命中率70%)をクリア！この「2・4拍を体で感じる力」こそスウィングの核です。Step 2（コード伴奏）に進みましょう。'
+                        ? '合格ライン(命中率70%)をクリア！この「2・4拍を体で感じる力」こそスウィングの核です。Phase 6に進みましょう。'
                         : '惜しい！命中率70%以上で合格です。コツは「1・3拍目に小さくうなずいて、2・4拍目で叩く」こと。テンポを下げて再挑戦もアリです。'}
                 </p>
 
                 <div style="display: flex; gap: 15px; flex-wrap: wrap;">
                     <button class="action-btn" id="btn-restart-swingtap"><i class="fa-solid fa-rotate-left"></i> もう一度プレイ</button>
                     <button class="secondary-btn" id="btn-exit-swingtap"><i class="fa-solid fa-xmark"></i> 解説に戻る</button>
-                    ${passed ? `<button class="action-btn" id="btn-go-to-2" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);"><i class="fa-solid fa-chevron-right"></i> Step 2 へ進む</button>` : ''}
+                    ${passed ? `<button class="action-btn" id="btn-go-to-2" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);"><i class="fa-solid fa-chevron-right"></i> Phase 6 へ進む</button>` : ''}
                 </div>
             </div>
         `;
 
         document.getElementById('btn-restart-swingtap').addEventListener('click', () => this.startSwingTapGame());
-        document.getElementById('btn-exit-swingtap').addEventListener('click', () => this.switchStep('1'));
+        document.getElementById('btn-exit-swingtap').addEventListener('click', () => this.switchStep('5'));
         if (passed) {
-            document.getElementById('btn-go-to-2').addEventListener('click', () => this.switchStep('2'));
+            document.getElementById('btn-go-to-2').addEventListener('click', () => this.switchStep('6'));
         }
     }
 
@@ -3926,7 +3939,7 @@ class SilentRhythmApp {
             btnExit.addEventListener('click', () => {
                 if (this.gameState.timerId) clearTimeout(this.gameState.timerId);
                 this.cleanupActiveGame();
-                this.switchStep('0a');
+                this.switchStep('1');
             });
         }
     }
