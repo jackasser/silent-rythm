@@ -508,7 +508,7 @@ class InteractiveStaff {
                 const degreeColors = {
                     'root': 'var(--color-root)',
                     '3rd': 'var(--color-3rd)',
-                    '5th': '#9ca3af',
+                    '5th': 'var(--color-5th)',
                     '7th': 'var(--color-7th)',
                     'scale': 'var(--color-scale)'
                 };

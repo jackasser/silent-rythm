@@ -403,10 +403,7 @@ class SilentRhythmApp {
     initComponents() {
         this.staff = new window.InteractiveStaff('svg-staff-wrapper', (midi) => {
             window.audioEngine.playNote(midi, 1.5, 0.4);
-            this.fretboard.clearMarkers();
-            this.fretboard.addMarker(midi, 'root');
-            const pitchClass = midi % 12;
-            this.fretboard.setOctaveHighlight(pitchClass, true);
+            this.updateSingleNoteFretboardHighlight(midi);
         });
 
         this.fretboard = new window.InteractiveFretboard('svg-fretboard-wrapper', (midi, stringIndex, fret) => {
@@ -418,15 +415,7 @@ class SilentRhythmApp {
             // ゲーム中・ガイド再生中でない場合のみ、五線譜がスナップ＆マーカーとオクターブ点線を更新
             if ((!this.gameState || !this.gameState.activeGame) && !isGuidedPlayback) {
                 this.staff.setNoteByMidi(midi, true);
-                
-                // ガイド表示中（複数マーカーがある場合）は、既存のガイド表示を消去しない
-                const hasMultiNoteGuide = (this.fretboard.activeMarkers.size > 1);
-                if (!hasMultiNoteGuide) {
-                    this.fretboard.clearMarkers();
-                    this.fretboard.addMarker(midi, 'root');
-                    const pitchClass = midi % 12;
-                    this.fretboard.setOctaveHighlight(pitchClass, true);
-                }
+                this.updateSingleNoteFretboardHighlight(midi);
             }
 
             // Phase 3 or Phase 6 (Session) adlib landing detection
@@ -450,6 +439,17 @@ class SilentRhythmApp {
                 this.handleMugyudoClick(midi, stringIndex, fret);
             }
         });
+    }
+
+    updateSingleNoteFretboardHighlight(midi) {
+        if (!this.fretboard) return;
+        const hasMultiNoteGuide = (this.fretboard.activeMarkers.size > 1);
+        if (!hasMultiNoteGuide) {
+            this.fretboard.clearMarkers();
+            this.fretboard.addMarker(midi, 'root');
+            const pitchClass = midi % 12;
+            this.fretboard.setOctaveHighlight(pitchClass, true);
+        }
     }
 
     setupAppEvents() {
@@ -2080,6 +2080,7 @@ class SilentRhythmApp {
         
         if (window.audioEngine.isPlaying) {
             window.audioEngine.stopBackingTrack();
+            window.audioEngine.pianoEnabled = true;
             btn.innerHTML = '<i class="fa-solid fa-play"></i> スウィングメトロノーム 再生';
             this.resetBeatTrackerVisuals();
         } else {
@@ -3912,6 +3913,9 @@ class SilentRhythmApp {
         if (this.gameInterval) {
             clearInterval(this.gameInterval);
             this.gameInterval = null;
+        }
+        if (window.audioEngine) {
+            window.audioEngine.pianoEnabled = true;
         }
         // Swing Tapゲームのスペースキーハンドラを解除
         if (this.swingTapKeyHandler) {
