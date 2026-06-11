@@ -393,7 +393,7 @@ class SilentRhythmApp {
 
     initComponents() {
         this.staff = new window.InteractiveStaff('svg-staff-wrapper', (midi) => {
-            window.audioEngine.playNote(midi, 0.4, 0.4);
+            window.audioEngine.playNote(midi, 1.5, 0.4);
             this.fretboard.clearMarkers();
             this.fretboard.addMarker(midi, 'root');
             const pitchClass = midi % 12;
@@ -401,7 +401,7 @@ class SilentRhythmApp {
         });
 
         this.fretboard = new window.InteractiveFretboard('svg-fretboard-wrapper', (midi, stringIndex, fret) => {
-            window.audioEngine.playNote(midi, 0.4, 0.4);
+            window.audioEngine.playNote(midi, 1.5, 0.4);
 
             // Step 3/4/6のバッキング再生中はスケール・ターゲットのガイド表示を消さない
             const isGuidedPlayback = window.audioEngine.isPlaying && (this.currentStep === '3' || this.currentStep === '4' || this.currentStep === '6');
@@ -1343,7 +1343,7 @@ class SilentRhythmApp {
                     <h3 class="lesson-title">ジャズセッションの全貌</h3>
                 </div>
                 <p class="lesson-desc">
-                    ジャズセッションは、楽譜通りの演奏ではなく**「リアルタイムの会話」**です。<br>
+                    ジャズセッションは、楽譜通りの演奏ではなく<strong>「リアルタイムの会話」</strong>です。<br>
                     定番曲（スタンダード）のコード進行という共通ルールをベースに、テーマ ➔ アドリブソロ ➔ 伴奏（コンピング）の順で役割を対話するように展開します。
                 </p>
                 <div style="background: rgba(255,255,255,0.02); padding: 15px; border-radius: 12px; border: 1px solid var(--border-glass); font-size: 0.8rem; line-height: 1.45;">
@@ -1362,7 +1362,7 @@ class SilentRhythmApp {
                 </div>
                 <p class="lesson-desc">
                     アドリブやコードを自在に操るためには、指板上の音名把握が不可欠です。<br>
-                    特に**「5弦と6弦」**の音はすべてのコードのルート（根音）を決定するため、最優先で暗記します。
+                    特に<strong>「5弦と6弦」</strong>の音はすべてのコードのルート（根音）を決定するため、最優先で暗記します。
                 </p>
                 <div class="action-area" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;">
                     <button class="action-btn" id="btn-start-game-noterun">
@@ -1381,7 +1381,7 @@ class SilentRhythmApp {
                     <h3 class="lesson-title">ジャズの基本コード・フォーム (Shell Voicing)</h3>
                 </div>
                 <p class="lesson-desc">
-                    ジャズの伴奏では、ルート(R) + 3度 + 7度だけで構築する**「シェルボイシング」**が基本です。低音をベースに任せ、他とぶつからないスッキリした響きを作ります。
+                    ジャズの伴奏では、ルート(R) + 3度 + 7度だけで構築する<strong>「シェルボイシング」</strong>が基本です。低音をベースに任せ、他とぶつからないスッキリした響きを作ります。
                 </p>
                 <div class="voicing-explorer-card" style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-glass); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; gap: 10px;">
                     <div style="display: flex; flex-direction: column; gap: 6px; padding: 8px; background: rgba(0,0,0,0.15); border-radius: 8px; border: 1px solid rgba(255,255,255,0.02);">
@@ -1458,7 +1458,7 @@ class SilentRhythmApp {
                     <h3 class="lesson-title">ダイアトニック・コードを知ろう</h3>
                 </div>
                 <p class="lesson-desc">
-                    あるキー（調）のスケールの音だけで作られる7つの基本的なコードを**「ダイアトニックコード」**と呼びます。<br>
+                    あるキー（調）のスケールの音だけで作られる7つの基本的なコードを<strong>「ダイアトニックコード」</strong>と呼びます。<br>
                     これらを度数（ローマ数字: I, II, III...）で把握することが、ジャズのコード進行分析の鍵です。
                 </p>
                 <div class="lesson-interactive-panel" style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 12px; border: 1px solid var(--border-glass);">
@@ -1481,7 +1481,7 @@ class SilentRhythmApp {
                 </div>
                 <p class="lesson-desc">
                     アドリブソロは、頭の中のメロディをそのまま指板に反映させる鼻歌のような演奏です。<br>
-                    明るい曲調の基本となる**Gメジャースケール**の音を光らせます。伴奏を再生して、自由に弾いてみましょう！
+                    明るい曲調の基本となる<strong>Gメジャースケール</strong>の音を光らせます。伴奏を再生して、自由に弾いてみましょう！
                 </p>
                 <div class="lesson-interactive-panel" style="background: rgba(255,255,255,0.02); padding: 15px; border-radius: 16px; border: 1px solid var(--border-glass);">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -1522,7 +1522,7 @@ class SilentRhythmApp {
                     スケールを適当に弾くだけでなく、コードの構成音（アルペジオ）をなぞるように弾くことで、コード進行に完全に寄り添った説得力のあるアドリブが可能になります。
                 </p>
                 <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 12px; border: 1px solid var(--border-glass); font-size: 0.75rem; line-height: 1.4;">
-                    指板上に **Gm7 のコードトーン (G, B♭, D, F)** を表示します。<br>
+                    指板上に <strong>Gm7 のコードトーン (G, B♭, D, F)</strong> を表示します。<br>
                     ルートから順番に指板のハイライトをクリックして、コードアルペジオの「光る道筋」をなぞってみましょう。
                 </div>
             `;
@@ -1534,7 +1534,7 @@ class SilentRhythmApp {
                     <h3 class="lesson-title">ターゲットノート着地ゲーム</h3>
                 </div>
                 <p class="lesson-desc">
-                    スケールのアドリブソロを弾きながら、コードが切り替わる瞬間だけ、そのコードの**3度または7度の音（ターゲットノート）**を狙って着地します。コードの色彩がグッと際立ちます。
+                    スケールのアドリブソロを弾きながら、コードが切り替わる瞬間だけ、そのコードの<strong>3度または7度の音（ターゲットノート）</strong>を狙って着地します。コードの色彩がグッと際立ちます。
                 </p>
                 <div class="lesson-interactive-panel">
                     <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 12px; border: 1px solid var(--border-glass); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
@@ -1565,7 +1565,7 @@ class SilentRhythmApp {
                 </div>
                 <p class="lesson-desc">
                     ジャズの真髄である「モード（旋法）」を学びます。コードの背景に特定の雰囲気を漂わせるスケールです。<br>
-                    マイナーコードで使される哀愁の**「ドリアン」**、ドミナントコードで使われるファンキーな**「ミクソリディアン」**を体験しましょう。
+                    マイナーコードで使用される哀愁の<strong>「ドリアン」</strong>、ドミナントコードで使用されるファンキーな<strong>「ミクソリディアン」</strong>を体験しましょう。
                 </p>
                 <div class="lesson-interactive-panel" style="display: flex; gap: 10px; justify-content: center;">
                     <button class="action-btn" id="btn-mode-dorian" style="padding: 8px 16px; font-size: 0.8rem; background: linear-gradient(135deg, var(--accent-blue) 0%, #2563eb 100%);"><i class="fa-solid fa-cloud-moon"></i> G ドリアン (哀愁)</button>
@@ -1643,7 +1643,7 @@ class SilentRhythmApp {
                     <h3 class="lesson-title">タイム感と実践コンピング (2・4拍)</h3>
                 </div>
                 <p class="lesson-desc">
-                    ジャズのリズム（スウィング）は、ドラムのハイハットが鳴る**2拍目・4拍目**を強く意識します。ここにタイム感を合わせることでスウィング感が生まれます。
+                    ジャズのリズム（スウィング）は、ドラムのハイハットが鳴る<strong>2拍目・4拍目</strong>を強く意識します。ここにタイム感を合わせることでスウィング感が生まれます。
                 </p>
                 <div class="lesson-interactive-panel">
                     <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.02); padding: 15px; border-radius: 12px; border: 1px solid var(--border-glass); margin-bottom: 12px;">
@@ -2153,20 +2153,12 @@ class SilentRhythmApp {
         this.fretboard.clearMarkers();
         this.fretboard.setDisplayMode('degrees');
         
-        // ピアノ伴奏がOnのときはベース音が省略される（ガイドトーン）
-        const isPianoOn = window.audioEngine.pianoEnabled;
-        
         midiStack.forEach((midiVal, idx) => {
             const locKey = locKeys[idx];
             const degree = degreeStack[idx];
             
-            if (degree === 'root') {
-                if (!isPianoOn) {
-                    this.fretboard.addMarker(locKey, 'root');
-                }
-            } else {
-                this.fretboard.addMarker(locKey, degree);
-            }
+            // ピアノ伴奏On/Offに関わらず、指板のマーカーには常にルートを表示する
+            this.fretboard.addMarker(locKey, degree);
         });
         this.fretboard.renderMarkers();
 
@@ -2189,7 +2181,6 @@ class SilentRhythmApp {
     }
 
     generateChordDiagramSVG(string, type, rootFret) {
-        const isPianoOn = window.audioEngine.pianoEnabled;
         let startFret = rootFret;
         let playedNotes = [];
         let mutedStrings = [true, true, true, true, true, true]; // index 0 to 5 (1st to 6th string)
@@ -2201,12 +2192,9 @@ class SilentRhythmApp {
 
             startFret = rootFretVal;
 
-            if (!isPianoOn) {
-                playedNotes.push({ stringIndex: 5, fret: rootFretVal, label: 'R', color: 'var(--color-root)' });
-                mutedStrings[5] = false;
-            } else {
-                mutedStrings[5] = true;
-            }
+            // ピアノ伴奏On/Offに関わらず、常にルートを表示する
+            playedNotes.push({ stringIndex: 5, fret: rootFretVal, label: 'R', color: 'var(--color-root)' });
+            mutedStrings[5] = false;
             
             playedNotes.push({ stringIndex: 3, fret: fret4, label: '7', color: 'var(--color-7th)' });
             mutedStrings[3] = false;
@@ -2222,16 +2210,9 @@ class SilentRhythmApp {
             const fret4 = (type === 'maj7' || type === 'dom7') ? rootFretVal - 1 : rootFretVal - 2;
             const fret3 = (type === 'maj7') ? rootFretVal + 1 : rootFretVal;
 
-            const activeFrets = [fret4, fret3];
-            if (!isPianoOn) activeFrets.push(rootFretVal);
-            startFret = Math.min(...activeFrets);
-
-            if (!isPianoOn) {
-                playedNotes.push({ stringIndex: 4, fret: rootFretVal, label: 'R', color: 'var(--color-root)' });
-                mutedStrings[4] = false;
-            } else {
-                mutedStrings[4] = true;
-            }
+            // ピアノ伴奏On/Offに関わらず、常にルートを表示する
+            playedNotes.push({ stringIndex: 4, fret: rootFretVal, label: 'R', color: 'var(--color-root)' });
+            mutedStrings[4] = false;
 
             playedNotes.push({ stringIndex: 3, fret: fret4, label: '3', color: 'var(--color-3rd)' });
             mutedStrings[3] = false;
@@ -2242,6 +2223,14 @@ class SilentRhythmApp {
             mutedStrings[5] = true;
             mutedStrings[1] = true;
             mutedStrings[0] = true;
+        }
+
+        // 開放弦 (fret === 0) を除いた、押弦するフレットの最小値を求める
+        const fretsPressed = playedNotes.map(n => n.fret).filter(f => f > 0);
+        if (fretsPressed.length > 0) {
+            startFret = Math.min(...fretsPressed);
+        } else {
+            startFret = 1;
         }
 
         const width = 125;
@@ -2278,13 +2267,23 @@ class SilentRhythmApp {
 
         playedNotes.forEach(note => {
             const x = leftMargin + (5 - note.stringIndex) * stringSpacing;
-            const relFret = note.fret - startFret + 1;
-            const y = topMargin + (relFret - 0.5) * fretHeight;
+            
+            if (note.fret === 0) {
+                // 開放弦 (fret = 0) はナットの上 (フレット枠外) に中空の丸として描画する
+                const y = topMargin - 8;
+                svgHtml += `
+                    <circle cx="${x}" cy="${y}" r="5" fill="none" stroke="${note.color}" stroke-width="2" filter="drop-shadow(0 0 1px rgba(0,0,0,0.5))" />
+                    <text x="${x}" y="${y + 2.5}" fill="var(--text-primary)" font-size="7" font-weight="bold" font-family="sans-serif" text-anchor="middle">${note.label}</text>
+                `;
+            } else {
+                const relFret = note.fret - startFret + 1;
+                const y = topMargin + (relFret - 0.5) * fretHeight;
 
-            svgHtml += `
-                <circle cx="${x}" cy="${y}" r="6" fill="${note.color}" filter="drop-shadow(0 0 2px rgba(0,0,0,0.5))" />
-                <text x="${x}" y="${y + 3}" fill="#000" font-size="8" font-weight="bold" font-family="sans-serif" text-anchor="middle">${note.label}</text>
-            `;
+                svgHtml += `
+                    <circle cx="${x}" cy="${y}" r="6" fill="${note.color}" filter="drop-shadow(0 0 2px rgba(0,0,0,0.5))" />
+                    <text x="${x}" y="${y + 3}" fill="#000" font-size="8" font-weight="bold" font-family="sans-serif" text-anchor="middle">${note.label}</text>
+                `;
+            }
         });
 
         svgHtml += `</svg>`;

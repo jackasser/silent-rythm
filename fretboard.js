@@ -450,6 +450,9 @@ class InteractiveFretboard {
         this.activeMarkers.clear();
         this.markersGroup.innerHTML = '';
         this.octaveLinesGroup.innerHTML = '';
+        if (this.showAllNotes) {
+            this.renderMarkers();
+        }
     }
 
     addMarker(midi, type) {
