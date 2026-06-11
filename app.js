@@ -1501,17 +1501,52 @@ class SilentRhythmApp {
             return `
                 <div class="lesson-header">
                     <span class="lesson-badge"><i class="fa-solid fa-sitemap"></i> Lesson 06</span>
-                    <h3 class="lesson-title">ダイアトニック・コードを知ろう</h3>
+                    <h3 class="lesson-title">ダイアトニック・コード — コードの「家族」を知ろう</h3>
                 </div>
                 <p class="lesson-desc">
-                    あるキー（調）のスケールの音だけで作られる7つの基本的なコードを<strong>「ダイアトニックコード」</strong>と呼びます。<br>
-                    これらを度数（ローマ数字: I, II, III...）で把握することが、ジャズのコード進行分析の鍵です。
+                    Lesson 05で学んだ「度数」を使うと、1つのキー（調）から<strong>7つのコード</strong>が自然に生まれます。<br>
+                    この7人家族を<strong>「ダイアトニック・コード」</strong>と呼び、ジャズの全ての曲は基本的にこの家族の組み合わせで出来ています。
                 </p>
+
+                <div style="background: rgba(251,191,36,0.04); border: 1px solid rgba(251,191,36,0.15); border-radius: 12px; padding: 12px; margin-bottom: 12px;">
+                    <div style="font-size: 0.78rem; font-weight: bold; color: var(--accent-amber); margin-bottom: 8px;">
+                        <i class="fa-solid fa-lightbulb"></i> 覚えるのはたった3つの「役割」だけ！
+                    </div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; font-size: 0.72rem; line-height: 1.5;">
+                        <div style="flex: 1; min-width: 120px; background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.2); border-radius: 8px; padding: 8px;">
+                            <strong style="color: #60a5fa;">🏠 トニック (T)</strong><br>
+                            <span style="color: var(--text-muted);">「安心・帰る家」<br>曲の出発点と終着点。<br>I, III, VI番目のコード</span>
+                        </div>
+                        <div style="flex: 1; min-width: 120px; background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.2); border-radius: 8px; padding: 8px;">
+                            <strong style="color: #fbbf24;">🚶 サブドミナント (SD)</strong><br>
+                            <span style="color: var(--text-muted);">「旅に出る準備」<br>少し不安定で動き出す感覚。<br>II, IV番目のコード</span>
+                        </div>
+                        <div style="flex: 1; min-width: 120px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 8px; padding: 8px;">
+                            <strong style="color: #f87171;">⚡ ドミナント (D)</strong><br>
+                            <span style="color: var(--text-muted);">「家に帰りたい緊張」<br>最も不安定→Tへ解決。<br>V, VII番目のコード</span>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="lesson-interactive-panel" style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 12px; border: 1px solid var(--border-glass);">
-                    <div style="margin-bottom: 8px; font-size: 0.72rem; color: var(--text-muted);">キー: C メジャー・ダイアトニックコード</div>
+                    <div style="margin-bottom: 8px; font-size: 0.72rem; color: var(--text-muted);">
+                        <i class="fa-solid fa-hand-pointer"></i> クリックして音を聴き比べてみよう — <strong>キー: C メジャー</strong>
+                    </div>
                     <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;" id="diatonic-chords-list">
                         <!-- JSで動的にボタン生成 -->
                     </div>
+                    <div id="diatonic-detail-panel" style="margin-top: 10px; background: rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.03); border-radius: 8px; padding: 10px; font-size: 0.75rem; line-height: 1.5; color: var(--text-secondary); min-height: 50px;">
+                        <i class="fa-solid fa-arrow-up" style="color: var(--text-muted);"></i> 上のコードをクリックすると、音が鳴り、その役割と構成音が表示されます。
+                    </div>
+                </div>
+
+                <div style="background: rgba(255,255,255,0.02); border: 1px dashed rgba(251,191,36,0.15); border-radius: 10px; padding: 10px; margin-top: 10px; font-size: 0.72rem; color: var(--text-muted); line-height: 1.5;">
+                    <i class="fa-solid fa-music" style="color: var(--accent-amber);"></i>
+                    <strong>予告:</strong> この後学ぶ名曲「枯葉 (Autumn Leaves)」のコード進行は<br>
+                    <span style="color: var(--text-secondary);">
+                        <strong style="color: #fbbf24;">IIm7</strong> → <strong style="color: #f87171;">V7</strong> → <strong style="color: #60a5fa;">Imaj7</strong> → <strong style="color: #60a5fa;">IVmaj7</strong> ...
+                    </span><br>
+                    のように、すべてこの7つの家族で説明できます。ここで覚えた役割が、そのまま実践に繋がります！
                 </div>
             `;
         }
@@ -4273,27 +4308,40 @@ class SilentRhythmApp {
         const container = document.getElementById('diatonic-chords-list');
         if (!container) return;
 
-        const diatonicChords = [
-            { name: 'Cmaj7', roman: 'Imaj7', notes: [60, 64, 67, 71] },
-            { name: 'Dm7', roman: 'IIm7', notes: [62, 65, 69, 72] },
-            { name: 'Em7', roman: 'IIIm7', notes: [64, 67, 71, 74] },
-            { name: 'Fmaj7', roman: 'IVmaj7', notes: [53, 57, 60, 64] },
-            { name: 'G7', roman: 'V7', notes: [55, 59, 62, 65] },
-            { name: 'Am7', roman: 'VIm7', notes: [57, 60, 64, 67] },
-            { name: 'Bm7(b5)', roman: 'VIIm7(b5)', notes: [59, 62, 65, 69] }
+        const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+        this.diatonicChords = [
+            { name: 'Cmaj7', roman: 'Imaj7', notes: [60, 64, 67, 71], func: 'T', funcLabel: 'トニック', color: '#60a5fa',
+              desc: '最も安定した「家」のコード。曲の始まりと終わりに登場し、安心感を与えます。' },
+            { name: 'Dm7', roman: 'IIm7', notes: [62, 65, 69, 72], func: 'SD', funcLabel: 'サブドミナント', color: '#fbbf24',
+              desc: 'ジャズで最頻出のコード。V7(ドミナント)へ向かう「助走」として、ほぼ全ての曲に登場します。' },
+            { name: 'Em7', roman: 'IIIm7', notes: [64, 67, 71, 74], func: 'T', funcLabel: 'トニック', color: '#60a5fa',
+              desc: 'Imaj7の代理コード。Iの代わりに使うとほんの少しだけ色が変わった安定感が出ます。' },
+            { name: 'Fmaj7', roman: 'IVmaj7', notes: [53, 57, 60, 64], func: 'SD', funcLabel: 'サブドミナント', color: '#fbbf24',
+              desc: 'IIm7と同じ「旅立ち」の機能。温かみがありつつ少し浮遊感のある、おしゃれな響きです。' },
+            { name: 'G7', roman: 'V7', notes: [55, 59, 62, 65], func: 'D', funcLabel: 'ドミナント', color: '#f87171',
+              desc: '最も不安定で「家に帰りたい」緊張感を生むコード。この後にI(トニック)へ解決すると気持ちいい！' },
+            { name: 'Am7', roman: 'VIm7', notes: [57, 60, 64, 67], func: 'T', funcLabel: 'トニック', color: '#60a5fa',
+              desc: 'Imaj7の代理で、マイナーの哀愁を持つ安定コード。ボサノバやバラードでよく活躍します。' },
+            { name: 'Bm7(♭5)', roman: 'VIIm7(♭5)', notes: [59, 62, 65, 69], func: 'D', funcLabel: 'ドミナント', color: '#f87171',
+              desc: 'V7の代理コード。ジャズでは「IIm7(♭5) → V7 → Im」というマイナーキーの定番進行で大活躍します。' }
         ];
 
-        container.innerHTML = diatonicChords.map((chord, idx) => `
-            <button class="action-btn diatonic-chord-btn" data-idx="${idx}" style="padding: 8px 4px; font-size: 0.72rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;">
+        container.innerHTML = this.diatonicChords.map((chord, idx) => `
+            <button class="action-btn diatonic-chord-btn" data-idx="${idx}" style="padding: 8px 4px; font-size: 0.72rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border: 1px solid ${chord.color}33; background: ${chord.color}0a;">
+                <span style="font-size: 0.55rem; font-weight: 800; color: ${chord.color}; letter-spacing: 0.5px;">${chord.func}</span>
                 <span style="font-weight: 800; color: #fff;">${chord.name}</span>
-                <span style="font-size: 0.6rem; color: var(--text-muted); font-family: monospace;">${chord.roman}</span>
+                <span style="font-size: 0.58rem; color: var(--text-muted); font-family: monospace;">${chord.roman}</span>
             </button>
         `).join('');
 
         container.querySelectorAll('.diatonic-chord-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const idx = parseInt(btn.getAttribute('data-idx'), 10);
-                this.previewDiatonicChord(idx, diatonicChords);
+                // ハイライト状態の更新
+                container.querySelectorAll('.diatonic-chord-btn').forEach(b => b.style.outline = 'none');
+                btn.style.outline = `2px solid ${this.diatonicChords[idx].color}`;
+                this.previewDiatonicChord(idx, this.diatonicChords);
             });
         });
     }
@@ -4302,23 +4350,52 @@ class SilentRhythmApp {
         const chord = diatonicChords[idx];
         if (!chord) return;
 
+        const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+        const degreeLabels = ['R', '3rd', '5th', '7th'];
+
         this.fretboard.clearMarkers();
+        this.fretboard.setDisplayMode('degrees');
         chord.notes.forEach((midi, i) => {
-            const type = (i === 0) ? 'root' : 'scale';
+            const type = (i === 0) ? 'root' : (i === 1 ? '3rd' : (i === 2 ? '5th' : '7th'));
             this.fretboard.addMarker(midi, type);
         });
         this.fretboard.renderMarkers();
 
         if (this.staff) {
-            this.staff.setNoteByMidi(chord.notes[0], true);
+            this.staff.setChordNotes(chord.notes, chord.notes.map((n, i) => i === 0 ? 'root' : 'scale'));
         }
 
         window.audioEngine.playChord(chord.notes, 1.0, 0.4);
 
+        // 詳細パネル更新
+        const detailPanel = document.getElementById('diatonic-detail-panel');
+        if (detailPanel) {
+            const noteLabels = chord.notes.map((midi, i) => 
+                `<span style="color: ${i === 0 ? 'var(--color-root)' : 'var(--text-primary)'}; font-weight: bold;">${noteNames[midi % 12]}</span><span style="color: var(--text-muted); font-size: 0.65rem;">(${degreeLabels[i]})</span>`
+            ).join(' + ');
+
+            detailPanel.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                    <span style="background: ${chord.color}22; color: ${chord.color}; border: 1px solid ${chord.color}44; border-radius: 6px; padding: 2px 8px; font-size: 0.7rem; font-weight: 800;">${chord.func} : ${chord.funcLabel}</span>
+                    <strong style="color: #fff; font-size: 0.85rem;">${chord.name}</strong>
+                    <span style="color: var(--text-muted); font-size: 0.7rem; font-family: monospace;">(${chord.roman})</span>
+                </div>
+                <div style="margin-bottom: 4px;">
+                    <span style="color: var(--text-muted); font-size: 0.68rem;">構成音:</span> ${noteLabels}
+                </div>
+                <div style="color: var(--text-secondary); font-size: 0.73rem; line-height: 1.4;">
+                    <i class="fa-solid fa-comment-dots" style="color: ${chord.color};"></i> ${chord.desc}
+                </div>
+            `;
+            if (window.gsap) {
+                window.gsap.fromTo(detailPanel, { opacity: 0, y: 5 }, { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' });
+            }
+        }
+
         const btn = document.querySelector(`.diatonic-chord-btn[data-idx="${idx}"]`);
         if (btn) {
             const rect = btn.getBoundingClientRect();
-            this.triggerNeonFeedback(`Nice: ${chord.name}!`, rect.left + rect.width / 2, rect.top);
+            this.triggerNeonFeedback(`${chord.func}: ${chord.name}`, rect.left + rect.width / 2, rect.top);
         }
     }
 
