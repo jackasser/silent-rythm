@@ -225,7 +225,7 @@ class SilentRhythmApp {
             }
         });
         if (levelEl) {
-            levelEl.textContent = `Step ${this.currentStep.toUpperCase()}`;
+            levelEl.textContent = `Phase ${this.currentStep}`;
         }
     }
 
@@ -560,7 +560,7 @@ class SilentRhythmApp {
             if (lockIcon) lockIcon.innerHTML = '<i class="fa-solid fa-lock-open" style="color: var(--accent-emerald);"></i>';
         }
         const unlockEl = document.getElementById('unlocked-level');
-        if (unlockEl) unlockEl.textContent = `Step ${step.toUpperCase()}`;
+        if (unlockEl) unlockEl.textContent = `Phase ${step}`;
 
         // セーブデータをローカルに保存
         this.saveCurrentUserData();
@@ -2005,10 +2005,11 @@ class SilentRhythmApp {
         
         this.fretboard.renderMarkers();
         
+        const currentStepAtLaunch = this.currentStep;
         const activeMidi = Array.from(this.fretboard.activeMarkers.keys());
         activeMidi.sort((a,b)=>a-b).forEach((midi, i) => {
             setTimeout(() => {
-                if (this.currentStep !== '2' && this.currentStep !== '4') return;
+                if (this.currentStep !== currentStepAtLaunch) return;
                 window.audioEngine.playNote(midi, 0.5, 0.4);
             }, i * 150);
         });
@@ -2076,7 +2077,7 @@ class SilentRhythmApp {
     }
 
     updateChordFormVisualization(playAudio = true) {
-        if (this.currentStep !== '2') return;
+        if (this.currentStep !== '1') return;
 
         const rootName = this.chordFormState.root;
         const string = this.chordFormState.string;
