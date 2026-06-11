@@ -22,6 +22,7 @@ class InteractiveFretboard {
         this.octaveLinesGroup = null;
         
         this.notation = 'cde';
+        this.lastClickedKey = null; // 最後にクリックした位置(弦-フレット)の常時表示用
         
         this.init();
     }
@@ -338,7 +339,9 @@ class InteractiveFretboard {
             }
             
             const midi = this.openStrings[closestStringIndex] + targetFret;
+            this.lastClickedKey = `${closestStringIndex}-${targetFret}`;
             this.showClickMarker(closestStringIndex, targetFret, midi);
+            this.renderMarkers();
             
             if (this.onFretClicked) {
                 this.onFretClicked(midi, closestStringIndex, targetFret);
@@ -448,6 +451,7 @@ class InteractiveFretboard {
 
     clearMarkers() {
         this.activeMarkers.clear();
+        this.lastClickedKey = null;
         this.markersGroup.innerHTML = '';
         this.octaveLinesGroup.innerHTML = '';
         if (this.showAllNotes) {
@@ -470,13 +474,18 @@ class InteractiveFretboard {
                 const midi = this.openStrings[stringIndex] + fret;
                 const pitchClass = midi % 12;
                 const locKey = `${stringIndex}-${fret}`;
+                const isLastClicked = (locKey === this.lastClickedKey);
                 const isMarkerActive = this.activeMarkers.has(midi) || 
                                        this.activeMarkers.has(locKey) || 
+                                       isLastClicked ||
                                        (this.showOctaves && pitchClass === this.selectedPitchClass);
                 
                 if (isMarkerActive || this.showAllNotes) {
                     let type = this.activeMarkers.get(midi) || this.activeMarkers.get(locKey);
                     
+                    if (!type && isLastClicked) {
+                        type = 'last-clicked';
+                    }
                     if (!type && this.showOctaves && pitchClass === this.selectedPitchClass) {
                         type = 'scale';
                     }
@@ -507,7 +516,8 @@ class InteractiveFretboard {
                             '3rd': 'var(--color-3rd)',
                             '7th': 'var(--color-7th)',
                             'scale': 'var(--color-scale)',
-                            'question': 'var(--accent-purple)'
+                            'question': 'var(--accent-purple)',
+                            'last-clicked': 'var(--accent-amber)'
                         };
                         markerColor = colorMap[type] || 'var(--accent-amber)';
                         glowFilter = `drop-shadow(0px 0px 6px ${markerColor})`;
