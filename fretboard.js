@@ -364,12 +364,12 @@ class InteractiveFretboard {
         
         // ハイフレットでのサークル重なりを防ぐ動的サイズ調整
         const fretWidth = fret === 0 ? 45 : (this.getFretX(fret) - this.getFretX(fret - 1));
-        let r = 17.5;
-        let fontSize = 15;
-        let textYOffset = 5.0;
-        if (fretWidth < 38) {
-            r = Math.max(11, fretWidth * 0.45);
-            fontSize = Math.max(10, fretWidth * 0.35);
+        let r = 12.5; // 弦の間隔 28px に対し、直径 25px とすることで重なりを防止
+        let fontSize = 11;
+        let textYOffset = 3.5;
+        if (fretWidth < 28) {
+            r = Math.max(9.0, fretWidth * 0.45);
+            fontSize = Math.max(8, fretWidth * 0.35);
             textYOffset = fontSize * 0.35;
         }
         
@@ -486,12 +486,12 @@ class InteractiveFretboard {
                     
                     // ハイフレットでのサークル重なりを防ぐ動的サイズ調整
                     const fretWidth = fret === 0 ? 45 : (this.getFretX(fret) - this.getFretX(fret - 1));
-                    let r = 17.5;
-                    let fontSize = 15;
-                    let textYOffset = 5.0;
-                    if (fretWidth < 38) {
-                        r = Math.max(11, fretWidth * 0.45);
-                        fontSize = Math.max(10, fretWidth * 0.35);
+                    let r = 12.5; // 弦の間隔 28px に対し、直径 25px とすることで重なりを防止
+                    let fontSize = 11;
+                    let textYOffset = 3.5;
+                    if (fretWidth < 28) {
+                        r = Math.max(9.0, fretWidth * 0.45);
+                        fontSize = Math.max(8, fretWidth * 0.35);
                         textYOffset = fontSize * 0.35;
                     }
                     
