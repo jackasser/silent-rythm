@@ -418,10 +418,15 @@ class SilentRhythmApp {
             // ゲーム中・ガイド再生中でない場合のみ、五線譜がスナップ＆マーカーとオクターブ点線を更新
             if ((!this.gameState || !this.gameState.activeGame) && !isGuidedPlayback) {
                 this.staff.setNoteByMidi(midi, true);
-                this.fretboard.clearMarkers();
-                this.fretboard.addMarker(midi, 'root');
-                const pitchClass = midi % 12;
-                this.fretboard.setOctaveHighlight(pitchClass, true);
+                
+                // ガイド表示中（複数マーカーがある場合）は、既存のガイド表示を消去しない
+                const hasMultiNoteGuide = (this.fretboard.activeMarkers.size > 1);
+                if (!hasMultiNoteGuide) {
+                    this.fretboard.clearMarkers();
+                    this.fretboard.addMarker(midi, 'root');
+                    const pitchClass = midi % 12;
+                    this.fretboard.setOctaveHighlight(pitchClass, true);
+                }
             }
 
             // Phase 3 or Phase 6 (Session) adlib landing detection

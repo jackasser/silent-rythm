@@ -19,6 +19,7 @@ class InteractiveFretboard {
         
         this.svg = null;
         this.markersGroup = null;
+        this.clickMarkersGroup = null;
         this.octaveLinesGroup = null;
         this.cagedGroup = null;
         
@@ -51,6 +52,9 @@ class InteractiveFretboard {
         
         this.markersGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         this.svg.appendChild(this.markersGroup);
+        
+        this.clickMarkersGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        this.svg.appendChild(this.clickMarkersGroup);
         
         this.container.appendChild(this.svg);
         this.setupEvents();
@@ -344,8 +348,8 @@ class InteractiveFretboard {
             
             const midi = this.openStrings[closestStringIndex] + targetFret;
             this.lastClickedKey = `${closestStringIndex}-${targetFret}`;
-            this.showClickMarker(closestStringIndex, targetFret, midi);
             this.renderMarkers();
+            this.showClickMarker(closestStringIndex, targetFret, midi);
             
             if (this.onFretClicked) {
                 this.onFretClicked(midi, closestStringIndex, targetFret);
@@ -364,7 +368,7 @@ class InteractiveFretboard {
     }
 
     showClickMarker(stringIndex, fret, midi) {
-        if (this.activeMarkers.has(midi) || this.activeMarkers.has(`${stringIndex}-${fret}`)) return;
+        const isActive = this.activeMarkers.has(midi) || this.activeMarkers.has(`${stringIndex}-${fret}`);
         
         const x = fret === 0 ? 22 : (this.getFretX(fret - 1) + this.getFretX(fret)) / 2;
         const y = this.getStringY(stringIndex);
@@ -380,6 +384,50 @@ class InteractiveFretboard {
             textYOffset = fontSize * 0.35;
         }
         
+        // 1. タップ時に周囲に広がる光の波紋エフェクトを追加（常に表示）
+        const ripple = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        ripple.setAttribute('cx', x);
+        ripple.setAttribute('cy', y);
+        ripple.setAttribute('r', r);
+        ripple.setAttribute('fill', 'none');
+        ripple.setAttribute('stroke', 'var(--accent-amber)');
+        ripple.setAttribute('stroke-width', '2');
+        ripple.setAttribute('filter', 'drop-shadow(0 0 6px var(--accent-amber))');
+        this.clickMarkersGroup.appendChild(ripple);
+        
+        if (window.gsap) {
+            window.gsap.to(ripple, {
+                scale: 2.2,
+                transformOrigin: `${x}px ${y}px`,
+                opacity: 0,
+                duration: 0.45,
+                ease: "power2.out",
+                onComplete: () => {
+                    try { this.clickMarkersGroup.removeChild(ripple); } catch(e) {}
+                }
+            });
+        } else {
+            setTimeout(() => {
+                try { this.clickMarkersGroup.removeChild(ripple); } catch(e) {}
+            }, 450);
+        }
+        
+        // 2. 既にアクティブなマーカーがある場合は、その既存マーカーをポップ（アニメーション）させて終了
+        if (isActive) {
+            const existingGroup = this.markersGroup.querySelector(`[data-loc="${stringIndex}-${fret}"]`);
+            if (existingGroup && window.gsap) {
+                window.gsap.to(existingGroup, {
+                    scale: 1.3,
+                    duration: 0.12,
+                    yoyo: true,
+                    repeat: 1,
+                    transformOrigin: `${x}px ${y}px`
+                });
+            }
+            return;
+        }
+        
+        // 3. アクティブでない場合は、一時的な白マーカーを表示する
         const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
         circle.setAttribute('cx', x);
         circle.setAttribute('cy', y);
@@ -402,51 +450,22 @@ class InteractiveFretboard {
         const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         group.appendChild(circle);
         group.appendChild(text);
-        this.markersGroup.appendChild(group);
+        this.clickMarkersGroup.appendChild(group);
         
-        // タップ時に周囲に広がる光の波紋エフェクトを追加
-        const ripple = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        ripple.setAttribute('cx', x);
-        ripple.setAttribute('cy', y);
-        ripple.setAttribute('r', r);
-        ripple.setAttribute('fill', 'none');
-        ripple.setAttribute('stroke', 'var(--accent-amber)');
-        ripple.setAttribute('stroke-width', '2');
-        ripple.setAttribute('filter', 'drop-shadow(0 0 6px var(--accent-amber))');
-        this.markersGroup.appendChild(ripple);
-        
-        // GSAP を用いたタップ時の波紋・バウンスポップアップ
         if (window.gsap) {
             window.gsap.from(group, { scale: 0, transformOrigin: `${x}px ${y}px`, duration: 0.25, ease: "back.out(2)" });
-            window.gsap.to(ripple, {
-                scale: 2.2,
-                transformOrigin: `${x}px ${y}px`,
-                opacity: 0,
-                duration: 0.45,
-                ease: "power2.out",
-                onComplete: () => {
-                    try { this.markersGroup.removeChild(ripple); } catch(e) {}
-                }
-            });
-        } else {
             setTimeout(() => {
-                try { this.markersGroup.removeChild(ripple); } catch(e) {}
-            }, 450);
-        }
-        
-        setTimeout(() => {
-            if (window.gsap) {
                 window.gsap.to(group, { opacity: 0, scale: 0.5, transformOrigin: `${x}px ${y}px`, duration: 0.2, onComplete: () => {
-                    try { this.markersGroup.removeChild(group); } catch(e) {}
+                    try { this.clickMarkersGroup.removeChild(group); } catch(e) {}
                 }});
-            } else {
-                group.style.transition = 'opacity 0.25s';
-                group.style.opacity = '0';
-                setTimeout(() => {
-                    try { this.markersGroup.removeChild(group); } catch(e) {}
-                }, 250);
-            }
-        }, 250);
+            }, 250);
+        } else {
+            group.style.transition = 'opacity 0.25s';
+            group.style.opacity = '0';
+            setTimeout(() => {
+                try { this.clickMarkersGroup.removeChild(group); } catch(e) {}
+            }, 250);
+        }
     }
 
     setDisplayMode(mode) {
@@ -457,6 +476,7 @@ class InteractiveFretboard {
         this.activeMarkers.clear();
         this.lastClickedKey = null;
         this.markersGroup.innerHTML = '';
+        this.clickMarkersGroup.innerHTML = '';
         this.octaveLinesGroup.innerHTML = '';
         if (this.showAllNotes) {
             this.renderMarkers();
@@ -518,6 +538,7 @@ class InteractiveFretboard {
                         const colorMap = {
                             'root': 'var(--color-root)',
                             '3rd': 'var(--color-3rd)',
+                            '5th': 'var(--color-5th)',
                             '7th': 'var(--color-7th)',
                             'scale': 'var(--color-scale)',
                             'question': 'var(--accent-purple)',
@@ -556,6 +577,7 @@ class InteractiveFretboard {
                         const degreeLabels = {
                             'root': 'R',
                             '3rd': '3',
+                            '5th': '5',
                             '7th': '7',
                             'scale': 'S'
                         };
@@ -564,6 +586,8 @@ class InteractiveFretboard {
                     text.textContent = type === 'question' ? '?' : labelText;
                     
                     const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                    group.setAttribute('data-loc', locKey);
+                    group.setAttribute('data-midi', midi);
                     group.appendChild(circle);
                     group.appendChild(text);
                     this.markersGroup.appendChild(group);
