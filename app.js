@@ -4,11 +4,12 @@ class SilentRhythmApp {
     constructor() {
         this.staff = null;
         this.fretboard = null;
-        this.currentStep = '0b'; // デフォルトでコード＆スケール(0b)から開始
+        this.currentStep = '1'; // 初心者はまずPhase 1から開始
+        this.currentLesson = 1; // 各Phase内のレッスンインデックス
         this.score = 0;
-        this.unlockedSteps = new Set(['0a', '0b', '1', '2', '3', '4']); // すべての機能を最初から解放
+        this.unlockedSteps = new Set(['1', '2', '3', '4', '5', '6']); // すべての機能を最初から解放
         
-        // Step 0-B builder state
+        // Step 0-B builder state (コードの成り立ちなどで使用)
         this.builderState = {
             step: 1, // 1: Root, 2: 3rd, 3: 5th, 4: 7th, 5: Scale
             rootMidi: 48, // C3
@@ -18,38 +19,72 @@ class SilentRhythmApp {
             scaleType: 'major' // 'major' | 'pentatonic'
         };
 
-        // Step 2 Chord Form Explorer state
+        // Step 2 Chord Form Explorer state (基本コードフォームで使用)
         this.chordFormState = {
             root: 'G',
             string: '6', // '6' | '5'
             type: 'min7' // 'maj7' | 'min7' | 'dom7'
         };
         
-        // ユーザー称号の定義
+        // ユーザー称号の定義 (リニューアル版)
         this.titles = [
-            { score: 0, title: '未熟なギタリスト' },
-            { score: 100, title: '指板の放浪者' },
-            { score: 300, title: '五線譜の読手' },
-            { score: 600, title: 'スウィングの探求者' },
-            { score: 1000, title: 'セッションの常連' },
-            { score: 1500, title: 'ジャズマスター' }
+            { score: 0, title: '路地裏のリスナー' },
+            { score: 200, title: '地下の楽屋泥棒' },
+            { score: 500, title: '夜更かしのバッカー' },
+            { score: 1000, title: '煙の立ち込めるソロイスト' },
+            { score: 2000, title: 'ミッドナイト・ジャズマスター' }
         ];
 
         // 共通教材：『枯葉 (Autumn Leaves)』のコード進行定義 (Key: G minor, BPM 110)
         this.autumnLeavesProgression = [
-            { chord: 'Cm7', rootMidi: 48, notesMidi: [60, 63, 67, 70], beats: 4 },
-            { chord: 'F7', rootMidi: 41, notesMidi: [57, 61, 65, 69], beats: 4 },
-            { chord: 'B♭maj7', rootMidi: 46, notesMidi: [58, 62, 65, 69], beats: 4 },
-            { chord: 'E♭maj7', rootMidi: 51, notesMidi: [55, 59, 63, 67], beats: 4 },
-            { chord: 'Am7(♭5)', rootMidi: 45, notesMidi: [57, 60, 63, 67], beats: 4 },
-            { chord: 'D7', rootMidi: 50, notesMidi: [54, 57, 60, 64], beats: 4 },
-            { chord: 'Gm7', rootMidi: 43, notesMidi: [55, 58, 62, 65], beats: 4 },
-            { chord: 'G7', rootMidi: 43, notesMidi: [55, 59, 62, 65], beats: 4 }
+            { chord: 'Cm7', quality: 'min7', rootMidi: 48, notesMidi: [60, 63, 67, 70], beats: 4 },      // C E♭ G B♭
+            { chord: 'F7', quality: 'dom7', rootMidi: 41, notesMidi: [53, 57, 60, 63], beats: 4 },        // F A C E♭
+            { chord: 'B♭maj7', quality: 'maj7', rootMidi: 46, notesMidi: [58, 62, 65, 69], beats: 4 },    // B♭ D F A
+            { chord: 'E♭maj7', quality: 'maj7', rootMidi: 51, notesMidi: [63, 67, 70, 74], beats: 4 },    // E♭ G B♭ D
+            { chord: 'Am7(♭5)', quality: 'm7b5', rootMidi: 45, notesMidi: [57, 60, 63, 67], beats: 4 },   // A C E♭ G
+            { chord: 'D7', quality: 'dom7', rootMidi: 50, notesMidi: [54, 57, 60, 64], beats: 4 },        // F# A C E (rootless 9th)
+            { chord: 'Gm7', quality: 'min7', rootMidi: 43, notesMidi: [55, 58, 62, 65], beats: 4 },       // G B♭ D F
+            { chord: 'G7', quality: 'dom7', rootMidi: 43, notesMidi: [55, 59, 62, 65], beats: 4 }         // G B D F
         ];
 
         this.gameInterval = null;
         this.gameTimer = 0;
         this.gameState = null;
+
+        // 19のレッスンの階層定義
+        this.lessons = {
+            '1': [
+                { id: 1, title: 'Lesson 01: ジャズセッションの全貌' },
+                { id: 2, title: 'Lesson 02: 指板上の音名暗記 (CDE)' },
+                { id: 3, title: 'Lesson 03: 基本コード・フォーム (Shell)' }
+            ],
+            '2': [
+                { id: 4, title: 'Lesson 04: コード・トーン・ハーモナイズ' },
+                { id: 5, title: 'Lesson 05: コードの成り立ち (度数)' },
+                { id: 6, title: 'Lesson 06: ダイアトニック・コードの地図' }
+            ],
+            '3': [
+                { id: 7, title: 'Lesson 07: メジャー・スケールでアドリブ' },
+                { id: 9, title: 'Lesson 09: コード・トーン (アルペジオ)' },
+                { id: 10, title: 'Lesson 10: ターゲットノート着地ゲーム' }
+            ],
+            '4': [
+                { id: 8, title: 'Lesson 08: オルタード・スケール解決' },
+                { id: 11, title: 'Lesson 11: モード・スケールの色彩' }
+            ],
+            '5': [
+                { id: 12, title: 'Lesson 12: 曲の分析 (ダイアトニック)' },
+                { id: 13, title: 'Lesson 13: 曲の分析 (ノンダイアトニック)' },
+                { id: 14, title: 'Lesson 14: ジャズ定番フレーズを弾く' },
+                { id: 15, title: 'Lesson 15: テンション・コードの覚え方' },
+                { id: 16, title: 'Lesson 16: タイム感と実践コンピング' }
+            ],
+            '6': [
+                { id: 17, title: 'Lesson 17: イントロ＆エンディング' },
+                { id: 18, title: 'Lesson 18: 実践曲挑戦 (Autumn Leaves)' },
+                { id: 19, title: 'Lesson 19: ジャム・セッションの流儀' }
+            ]
+        };
     }
 
     init() {
@@ -57,7 +92,42 @@ class SilentRhythmApp {
         this.setupAppEvents();
         this.loadCurrentUser();
         this.setupLoginEvents();
+        this.syncRoadmapLocks();
         this.switchStep(this.currentStep, false); // 初期起動時はアニメーションなし
+        this.showOnboardingIfFirstVisit();
+    }
+
+    // unlockedSteps の状態をサイドバーのDOM (disabled/locked) に反映する。
+    syncRoadmapLocks() {
+        const steps = ['1', '2', '3', '4', '5', '6'];
+        steps.forEach(step => {
+            const btn = document.getElementById(`btn-step-${step}`);
+            if (!btn) return;
+            if (this.unlockedSteps.has(step)) {
+                btn.classList.remove('locked');
+                btn.removeAttribute('disabled');
+                const lockIcon = btn.querySelector('.lock-icon');
+                if (lockIcon) lockIcon.innerHTML = '<i class="fa-solid fa-lock-open" style="color: var(--accent-emerald);"></i>';
+            }
+        });
+    }
+
+    // 初回訪問時のみオンボーディングを表示
+    showOnboardingIfFirstVisit() {
+        if (localStorage.getItem('sr_onboarding_done')) return;
+        const modal = document.getElementById('onboarding-modal');
+        if (!modal) return;
+        modal.style.display = 'flex';
+        const closeOnboarding = () => {
+            localStorage.setItem('sr_onboarding_done', '1');
+            if (window.gsap) {
+                window.gsap.to(modal, { opacity: 0, duration: 0.3, onComplete: () => { modal.style.display = 'none'; } });
+            } else {
+                modal.style.display = 'none';
+            }
+        };
+        const btnStart = document.getElementById('btn-onboarding-start');
+        if (btnStart) btnStart.addEventListener('click', closeOnboarding);
     }
 
     /* ====================================================
@@ -71,13 +141,18 @@ class SilentRhythmApp {
             if (userData) {
                 this.currentUser = username;
                 this.score = userData.score || 0;
-                this.unlockedSteps = new Set(['0a', '0b', '1', '2', '3', '4']); // すべて強制解放
+                this.unlockedSteps = new Set(['1', '2', '3', '4', '5', '6']); // すべて解放
                 this.nickname = userData.nickname || username;
-                
-                // ロックを無効化するため、デフォルトで0bを優先にするか、既存ステップをそのままロード
-                const steps = ['4', '3', '2', '1', '0b', '0a'];
-                this.currentStep = steps.find(s => this.unlockedSteps.has(s)) || '0b';
-                
+
+                // 前回開いていたステップから再開（古いIDからマッピング）
+                let lastStep = userData.lastStep || '1';
+                const stepMap = { '0a': '1', '0b': '2', '1': '3', '2': '4', '3': '5', '4': '6' };
+                if (stepMap[lastStep]) {
+                    lastStep = stepMap[lastStep];
+                }
+                this.currentStep = lastStep;
+                this.currentLesson = userData.lastLesson || 1;
+
                 this.updateUserHeaderUI();
                 return;
             }
@@ -85,18 +160,21 @@ class SilentRhythmApp {
         // 未ログイン/ゲスト状態
         this.currentUser = null;
         this.score = 0;
-        this.unlockedSteps = new Set(['0a', '0b', '1', '2', '3', '4']); // すべて解放
+        this.unlockedSteps = new Set(['1', '2', '3', '4', '5', '6']); // すべて解放
         this.nickname = 'ゲスト';
-        this.currentStep = '0b'; // 0bから開始
+        this.currentStep = '1';
+        this.currentLesson = 1;
         this.updateUserHeaderUI();
     }
 
     saveCurrentUserData() {
-        if (!this.currentUser) return; // ゲスト状態では登録DBへ保存しない
+        if (!this.currentUser) return; // ゲスト状態では保存しない
         const users = JSON.parse(localStorage.getItem('sr_users') || '{}');
         if (users[this.currentUser]) {
             users[this.currentUser].score = this.score;
             users[this.currentUser].unlockedSteps = Array.from(this.unlockedSteps);
+            users[this.currentUser].lastStep = this.currentStep;
+            users[this.currentUser].lastLesson = this.currentLesson;
             localStorage.setItem('sr_users', JSON.stringify(users));
         }
     }
@@ -129,7 +207,7 @@ class SilentRhythmApp {
         if (titleEl) titleEl.textContent = activeTitle;
 
         // ロードマップボタンのロック状態を再同期
-        const steps = ['0a', '0b', '1', '2', '3', '4'];
+        const steps = ['1', '2', '3', '4', '5', '6'];
         steps.forEach(step => {
             const btn = document.getElementById(`btn-step-${step}`);
             if (btn) {
@@ -142,11 +220,10 @@ class SilentRhythmApp {
                     btn.classList.add('locked');
                     btn.setAttribute('disabled', 'true');
                     const icon = btn.querySelector('.lock-icon');
-                    if (icon) icon.innerHTML = '<i class="fa-solid fa-lock"></i>';
+                    if (icon) icon.innerHTML = '<i class="fa-solid fa-lock" style="color: var(--text-muted);"></i>';
                 }
             }
         });
-
         if (levelEl) {
             levelEl.textContent = `Step ${this.currentStep.toUpperCase()}`;
         }
@@ -326,8 +403,11 @@ class SilentRhythmApp {
         this.fretboard = new window.InteractiveFretboard('svg-fretboard-wrapper', (midi, stringIndex, fret) => {
             window.audioEngine.playNote(midi, 0.4, 0.4);
 
-            // ゲーム中でない場合のみ、五線譜が滑らかにスナップ＆マーカーとオクターブ点線を更新
-            if (!this.gameState || !this.gameState.activeGame) {
+            // Step 3/4/6のバッキング再生中はスケール・ターゲットのガイド表示を消さない
+            const isGuidedPlayback = window.audioEngine.isPlaying && (this.currentStep === '3' || this.currentStep === '4' || this.currentStep === '6');
+
+            // ゲーム中・ガイド再生中でない場合のみ、五線譜がスナップ＆マーカーとオクターブ点線を更新
+            if ((!this.gameState || !this.gameState.activeGame) && !isGuidedPlayback) {
                 this.staff.setNoteByMidi(midi, true);
                 this.fretboard.clearMarkers();
                 this.fretboard.addMarker(midi, 'root');
@@ -335,22 +415,27 @@ class SilentRhythmApp {
                 this.fretboard.setOctaveHighlight(pitchClass, true);
             }
 
-            if (this.currentStep === '0a' && this.gameState && this.gameState.activeGame === 'noterun') {
+            // Phase 3 or Phase 6 (Session) adlib landing detection
+            if ((this.currentStep === '3' || (this.currentStep === '6' && this.currentLesson === 18)) && window.audioEngine.isPlaying) {
+                this.handleAdlibClick(midi, stringIndex, fret);
+            }
+
+            if (this.gameState && this.gameState.activeGame === 'noterun') {
                 this.handleNoteRunClick(midi, stringIndex, fret);
             }
 
-            if (this.currentStep === '0b' && this.gameState && this.gameState.activeGame === 'hunter') {
+            if (this.gameState && this.gameState.activeGame === 'hunter') {
                 this.handleHunterClick(midi, stringIndex, fret);
             }
             
-            if (this.currentStep === '2' && this.gameState && this.gameState.activeGame === 'builder') {
+            if (this.gameState && this.gameState.activeGame === 'builder') {
                 this.handleBuilderClick(midi);
             }
         });
     }
 
     setupAppEvents() {
-        const steps = ['0a', '0b', '1', '2', '3', '4'];
+        const steps = ['1', '2', '3', '4', '5', '6'];
         steps.forEach(step => {
             const btn = document.getElementById(`btn-step-${step}`);
             if (btn) {
@@ -380,6 +465,42 @@ class SilentRhythmApp {
                 this.staff.setNotation('doremi');
                 this.fretboard.setNotation('doremi');
                 this.updateActiveLessonText();
+            });
+        }
+
+        // 音量コントロール (localStorageに保存し次回も引き継ぐ)
+        const sliderVolume = document.getElementById('slider-volume');
+        const btnMute = document.getElementById('btn-mute');
+        if (sliderVolume && btnMute) {
+            const VOLUME_MAX = 0.6; // スライダー100%時のマスターゲイン
+            const updateMuteIcon = (percent) => {
+                btnMute.className = percent === 0
+                    ? 'fa-solid fa-volume-xmark'
+                    : (percent < 50 ? 'fa-solid fa-volume-low' : 'fa-solid fa-volume-high');
+            };
+            const applyVolume = (percent) => {
+                window.audioEngine.setMasterVolume((percent / 100) * VOLUME_MAX);
+                updateMuteIcon(percent);
+                localStorage.setItem('sr_volume', String(percent));
+            };
+
+            const savedVolume = parseInt(localStorage.getItem('sr_volume') || '50', 10);
+            sliderVolume.value = savedVolume;
+            applyVolume(savedVolume);
+
+            sliderVolume.addEventListener('input', (e) => applyVolume(parseInt(e.target.value, 10)));
+
+            btnMute.addEventListener('click', () => {
+                const current = parseInt(sliderVolume.value, 10);
+                if (current > 0) {
+                    this.volumeBeforeMute = current;
+                    sliderVolume.value = 0;
+                    applyVolume(0);
+                } else {
+                    const restored = this.volumeBeforeMute || 50;
+                    sliderVolume.value = restored;
+                    applyVolume(restored);
+                }
             });
         }
 
@@ -455,12 +576,23 @@ class SilentRhythmApp {
         
         this.currentStep = step;
         
+        // そのPhaseの最初のレッスンを自動設定
+        const phaseLessons = this.lessons[step] || [];
+        if (phaseLessons.length > 0) {
+            const belongsToPhase = phaseLessons.some(l => l.id === this.currentLesson);
+            if (!belongsToPhase) {
+                this.currentLesson = phaseLessons[0].id;
+            }
+        }
+        
+        this.saveCurrentUserData();
+
         window.audioEngine.stopBackingTrack();
         this.cleanupActiveGame();
         
         this.fretboard.clearMarkers();
         
-        // プレミアム・モーション・トランジション（Linear風）
+        // プレミアム・モーション・トランジション
         const panel = document.getElementById('lesson-panel');
         if (animate && panel && window.gsap) {
             window.gsap.fromTo(panel, 
@@ -469,27 +601,19 @@ class SilentRhythmApp {
             );
         }
         
+        this.syncInteractiveStageForLesson(this.currentLesson);
         this.renderLessonPanel();
-        
-        // ステップ切り替え時に現在の五線譜の音を指板に同期
-        if (this.staff && this.fretboard) {
-            this.staff.drawNote(false);
-            const currentMidi = this.staff.currentNote.midi;
-            this.fretboard.clearMarkers();
-            this.fretboard.addMarker(currentMidi, 'root');
-            this.fretboard.setOctaveHighlight(currentMidi % 12, true);
-        }
     }
 
     updateActiveLessonText() {
         if (this.gameState && this.gameState.activeGame) {
             const active = this.gameState.activeGame;
-            if (active === 'memorize') {
-                this.updateMemorizeUI();
-            } else if (active === 'noterun') {
+            if (active === 'noterun') {
                 this.updateNoteRunUI();
             } else if (active === 'hunter') {
                 this.updateHunterGameUI();
+            } else if (active === 'builder') {
+                this.updateBuilderGameUI();
             }
         } else {
             this.renderLessonPanel();
@@ -507,30 +631,62 @@ class SilentRhythmApp {
         }
         if (!placeholder) return;
         
-        let html = '';
-        switch (this.currentStep) {
-            case '0a':
-                html = this.getStep0AContent();
-                break;
-            case '0b':
-                html = this.getStep0BContent();
-                break;
-            case '1':
-                html = this.getStep1Content();
-                break;
-            case '2':
-                html = this.getStep2Content();
-                break;
-            case '3':
-                html = this.getStep3Content();
-                break;
-            case '4':
-                html = this.getStep4Content();
-                break;
+        const phaseLessons = this.lessons[this.currentStep] || [];
+        
+        let vinylShelfHtml = `<div class="vinyl-shelf">`;
+        phaseLessons.forEach((lesson) => {
+            const isActive = this.currentLesson === lesson.id;
+            const activeClass = isActive ? 'active' : '';
+            const displayTitle = lesson.title.split(': ')[1] || lesson.title;
+            
+            vinylShelfHtml += `
+                <div class="vinyl-album ${activeClass}" data-lesson-id="${lesson.id}" role="button" tabindex="0">
+                    <div class="vinyl-jacket-wrapper">
+                        <div class="vinyl-jacket">
+                            <span>L${String(lesson.id).padStart(2, '0')}</span>
+                        </div>
+                        <div class="vinyl-disc">
+                            <div class="vinyl-disc-label"></div>
+                        </div>
+                    </div>
+                    <div class="vinyl-title">${displayTitle}</div>
+                </div>
+            `;
+        });
+        vinylShelfHtml += `</div>`;
+
+        const lessonContentHtml = this.getLessonContent(this.currentLesson);
+        
+        placeholder.innerHTML = vinylShelfHtml + `<div class="active-lesson-body" style="margin-top: 10px;">${lessonContentHtml}</div>`;
+        
+        this.attachVinylEvents();
+        this.attachLessonEvents();
+    }
+
+    attachVinylEvents() {
+        document.querySelectorAll('.vinyl-album').forEach(album => {
+            album.addEventListener('click', () => {
+                const lessonId = parseInt(album.getAttribute('data-lesson-id'), 10);
+                this.switchLesson(lessonId);
+            });
+        });
+    }
+
+    switchLesson(lessonId) {
+        if (this.currentLesson === lessonId) return;
+        this.currentLesson = lessonId;
+        this.saveCurrentUserData();
+        
+        window.audioEngine.playNote(55, 0.1, 0.25);
+        
+        const body = document.querySelector('.active-lesson-body');
+        if (body && window.gsap) {
+            window.gsap.fromTo(body, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" });
         }
         
-        placeholder.innerHTML = html;
-        this.attachLessonEvents();
+        this.cleanupActiveGame();
+        this.syncInteractiveStageForLesson(lessonId);
+        this.renderLessonPanel();
     }
 
     /* ====================================================
@@ -1173,245 +1329,499 @@ class SilentRhythmApp {
         }
     }
 
-    getStep1Content() {
-        return `
-            <div class="lesson-header">
-                <span class="lesson-badge"><i class="fa-solid fa-bolt"></i> Step 1</span>
-                <h2 class="lesson-title">Step 1: ロストしないタイム感 (2・4拍スウィング)</h2>
-            </div>
-            <p class="lesson-desc">
-                ジャズセッションの最重要ルールは「迷子にならない（ロストしない）こと」です。<br>
-                ジャズのスウィングは、ドラムのハイハットが<strong>2拍目・4拍目（裏拍）</strong>で鳴ることで心地よいノリを作ります。
-                メトロノームに合わせて、小節の頭を意識しながら手拍子やコードを刻みましょう。
-            </p>
-            
-            <div class="lesson-interactive-panel">
-                <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.02); padding: 20px; border-radius: 16px; border: 1px solid var(--border-glass); margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
-                    <div>
-                        <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;"><i class="fa-solid fa-gauge-high"></i> TEMPO CONTROL</span>
-                        <div style="display: flex; align-items: center; gap: 20px; margin-top: 8px;">
-                            <input type="range" id="slider-bpm" min="70" max="160" value="110" style="width: 150px; accent-color: var(--accent-amber);">
-                            <span id="label-bpm" style="font-family: var(--font-heading); font-weight: 800; color: var(--accent-amber); font-size: 1.2rem;">110 BPM</span>
-                        </div>
-                    </div>
-                    
-                    <button class="action-btn" id="btn-toggle-swing">
-                        <i class="fa-solid fa-play"></i> スウィングメトロノーム 再生
-                    </button>
-                </div>
-
-                <div style="text-align: center; margin-bottom: 25px;">
-                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 15px; letter-spacing: 1px;"><i class="fa-solid fa-wave-square"></i> BEAT TRACKER (1小節 = 4拍)</div>
-                    <div style="display: flex; justify-content: center; gap: 20px;" id="beat-tracker-dots">
-                        <div class="beat-dot" id="dot-1" style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--border-glass); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700;">1</div>
-                        <div class="beat-dot" id="dot-2" style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--border-glass); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700;">2</div>
-                        <div class="beat-dot" id="dot-3" style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--border-glass); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700;">3</div>
-                        <div class="beat-dot" id="dot-4" style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--border-glass); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700;">4</div>
-                    </div>
-                    <div id="swing-beat-status" style="margin-top: 15px; font-family: var(--font-heading); font-weight: 800; font-size: 1.25rem; color: var(--accent-amber);">1小節目 / 4拍</div>
-                </div>
-
-                <div class="action-area" style="display: flex; gap: 15px;">
-                    <button class="secondary-btn" id="btn-next-step-1">
-                        <i class="fa-solid fa-chevron-right"></i> 拍感が掴めたので、Step 2（コード伴奏）へ進む
-                    </button>
-                </div>
-            </div>
-        `;
+    getLessonContent(lessonId) {
+        if (lessonId <= 6) return this.getPhase1_2Lessons(lessonId);
+        if (lessonId <= 11) return this.getPhase3_4Lessons(lessonId);
+        return this.getPhase5_6Lessons(lessonId);
     }
 
-    getStep2Content() {
-        return `
-            <div class="lesson-header">
-                <span class="lesson-badge"><i class="fa-solid fa-bolt"></i> Step 2</span>
-                <h2 class="lesson-title">Step 2: 邪魔しないバッキング (シェル＆ガイドトーン)</h2>
-            </div>
-            <p class="lesson-desc">
-                セッションでは、他の楽器の音域を邪魔しないことがマナーです。<br>
-                ルート(R) + 3度 + 7度で構成される「<strong>シェルボイシング</strong>」や、3度+7度だけの「<strong>ガイドトーン</strong>」を学びます。
-                ピアノ伴奏のOn/Offを切り替えて、アンサンブルに合わせたコードフォームの違いを確認しましょう。
-            </p>
-            
-            <div class="lesson-interactive-panel" style="display: grid; grid-template-columns: 1fr; gap: 15px;">
-                <!-- アンサンブル状況切り替え -->
-                <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass); border-radius: 16px; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); gap: 15px; flex-wrap: wrap;">
-                    <div>
-                        <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;"><i class="fa-solid fa-people-group"></i> アンサンブル状況切り替え</span>
-                        <div style="display: flex; gap: 12px; margin-top: 8px;">
-                            <button class="toggle-btn active" id="btn-piano-off"><i class="fa-solid fa-guitar"></i> ピアノ無し (ドラム&ベースのみ)</button>
-                            <button class="toggle-btn" id="btn-piano-on"><i class="fa-solid fa-keyboard"></i> ピアノ有り (鍵盤伴奏つき)</button>
-                        </div>
-                    </div>
-                    <div style="text-align: right; max-width: 320px; min-width: 200px;">
-                        <span style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">現在のバッキング指示</span>
-                        <div id="voicing-guide-desc" style="font-size: 0.85rem; color: var(--accent-amber); font-weight: 600; margin-top: 5px; line-height: 1.4;">
-                            ルートを含む「シェルコード(3音)」を弾いてバンドを支えましょう。
-                        </div>
-                    </div>
+    getPhase1_2Lessons(lessonId) {
+        if (lessonId === 1) {
+            return `
+                <div class="lesson-header">
+                    <span class="lesson-badge"><i class="fa-solid fa-graduation-cap"></i> Lesson 01</span>
+                    <h3 class="lesson-title">ジャズセッションの全貌</h3>
                 </div>
-
-                <!-- 実践コードフォーム・エクスプローラー -->
-                <div class="voicing-explorer-card" style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-glass); border-radius: 16px; padding: 20px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.3); display: flex; flex-direction: column; gap: 15px;">
-                    <h3 style="color: var(--accent-amber); font-size: 1rem; margin: 0; display: flex; align-items: center; gap: 8px;">
-                        <i class="fa-solid fa-guitar"></i> 🎸 実践コードフォーム・エクスプローラー
-                    </h3>
-                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 0; line-height: 1.4;">
-                        ジャズバッキングでプロが多用する、他とぶつからない実用的な「シェル・コードフォーム（3声和音）」を学びましょう。<br>
-                        トグルを切り替えると、指板上の押さえ方・五線譜の音・運指ガイドが連動して変化します。
-                    </p>
-
-                    <!-- コントロール群 -->
-                    <div style="display: flex; flex-direction: column; gap: 12px; padding: 12px; background: rgba(0,0,0,0.15); border-radius: 12px; border: 1px solid rgba(255,255,255,0.02);">
-                        <!-- ルート音選択 -->
-                        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                            <span style="font-size: 0.78rem; color: var(--text-muted); font-weight: bold; width: 85px;">1. ルート音:</span>
-                            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                <p class="lesson-desc">
+                    ジャズセッションは、楽譜通りの演奏ではなく**「リアルタイムの会話」**です。<br>
+                    定番曲（スタンダード）のコード進行という共通ルールをベースに、テーマ ➔ アドリブソロ ➔ 伴奏（コンピング）の順で役割を対話するように展開します。
+                </p>
+                <div style="background: rgba(255,255,255,0.02); padding: 15px; border-radius: 12px; border: 1px solid var(--border-glass); font-size: 0.8rem; line-height: 1.45;">
+                    <strong style="color: var(--accent-amber); display: block; margin-bottom: 5px;"><i class="fa-solid fa-list-ol"></i> 演奏の構成：</strong>
+                    1. <strong>イントロ ➔ テーマ</strong>: 曲のメロディをフロント奏者が奏でます。<br>
+                    2. <strong>ソロ回し</strong>: 順番にその場でフレーズを作ってアドリブします。<br>
+                    3. <strong>後テーマ ➔ エンディング</strong>: 最後にもう一度メロディを奏でて終わります。
+                </div>
+            `;
+        }
+        if (lessonId === 2) {
+            return `
+                <div class="lesson-header">
+                    <span class="lesson-badge"><i class="fa-solid fa-map"></i> Lesson 02</span>
+                    <h3 class="lesson-title">指板上の音名を覚えよう！</h3>
+                </div>
+                <p class="lesson-desc">
+                    アドリブやコードを自在に操るためには、指板上の音名把握が不可欠です。<br>
+                    特に**「5弦と6弦」**の音はすべてのコードのルート（根音）を決定するため、最優先で暗記します。
+                </p>
+                <div class="action-area" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;">
+                    <button class="action-btn" id="btn-start-game-noterun">
+                        <i class="fa-solid fa-gamepad"></i> Note Run (音名当てゲーム) を開始
+                    </button>
+                    <button class="secondary-btn" id="btn-start-game-hunter" style="background: linear-gradient(135deg, var(--accent-purple) 0%, #6366f1 100%); border: none; color: white;">
+                        <i class="fa-solid fa-stopwatch"></i> 音名ハント (時間制限ゲーム)
+                    </button>
+                </div>
+            `;
+        }
+        if (lessonId === 3) {
+            return `
+                <div class="lesson-header">
+                    <span class="lesson-badge"><i class="fa-solid fa-guitar"></i> Lesson 03</span>
+                    <h3 class="lesson-title">ジャズの基本コード・フォーム (Shell Voicing)</h3>
+                </div>
+                <p class="lesson-desc">
+                    ジャズの伴奏では、ルート(R) + 3度 + 7度だけで構築する**「シェルボイシング」**が基本です。低音をベースに任せ、他とぶつからないスッキリした響きを作ります。
+                </p>
+                <div class="voicing-explorer-card" style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-glass); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; gap: 10px;">
+                    <div style="display: flex; flex-direction: column; gap: 6px; padding: 8px; background: rgba(0,0,0,0.15); border-radius: 8px; border: 1px solid rgba(255,255,255,0.02);">
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: bold; width: 75px;">1. ルート音:</span>
+                            <div style="display: flex; gap: 4px; flex-wrap: wrap;">
                                 ${['C', 'D', 'E', 'F', 'G', 'A', 'B'].map(note => `
-                                    <button class="form-root-btn ${this.chordFormState.root === note ? 'active' : ''}" data-note="${note}" style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid ${this.chordFormState.root === note ? 'var(--accent-amber)' : 'var(--border-glass)'}; background: ${this.chordFormState.root === note ? 'var(--accent-amber-glow)' : 'transparent'}; color: #fff; font-weight: bold; cursor: pointer; font-size: 0.85rem; transition: all 0.2s ease;">
+                                    <button class="form-root-btn ${this.chordFormState.root === note ? 'active' : ''}" data-note="${note}" style="width: 26px; height: 26px; border-radius: 50%; border: 1px solid ${this.chordFormState.root === note ? 'var(--accent-amber)' : 'var(--border-glass)'}; background: ${this.chordFormState.root === note ? 'var(--accent-amber-glow)' : 'transparent'}; color: #fff; font-weight: bold; cursor: pointer; font-size: 0.72rem; transition: all 0.2s ease;">
                                         ${note}
                                     </button>
                                 `).join('')}
                             </div>
                         </div>
-
-                        <!-- ルート弦選択 -->
-                        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                            <span style="font-size: 0.78rem; color: var(--text-muted); font-weight: bold; width: 85px;">2. ルートの弦:</span>
-                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                <button class="toggle-btn ${this.chordFormState.string === '6' ? 'active' : ''}" id="btn-form-string-6" style="padding: 6px 12px; font-size: 0.8rem;">6弦ルート (低音側)</button>
-                                <button class="toggle-btn ${this.chordFormState.string === '5' ? 'active' : ''}" id="btn-form-string-5" style="padding: 6px 12px; font-size: 0.8rem;">5弦ルート (中音側)</button>
-                            </div>
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 4px;">
+                            <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: bold; width: 75px;">2. ルートの弦:</span>
+                            <button class="toggle-btn ${this.chordFormState.string === '6' ? 'active' : ''}" id="btn-form-string-6" style="padding: 4px 8px; font-size: 0.7rem;">6弦ルート</button>
+                            <button class="toggle-btn ${this.chordFormState.string === '5' ? 'active' : ''}" id="btn-form-string-5" style="padding: 4px 8px; font-size: 0.7rem;">5弦ルート</button>
                         </div>
-
-                        <!-- コードタイプ選択 -->
-                        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                            <span style="font-size: 0.78rem; color: var(--text-muted); font-weight: bold; width: 85px;">3. タイプ:</span>
-                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                <button class="toggle-btn ${this.chordFormState.type === 'maj7' ? 'active' : ''}" id="btn-form-type-maj7" style="padding: 6px 12px; font-size: 0.8rem;">メジャー7th (Maj7)</button>
-                                <button class="toggle-btn ${this.chordFormState.type === 'min7' ? 'active' : ''}" id="btn-form-type-min7" style="padding: 6px 12px; font-size: 0.8rem;">マイナー7th (m7)</button>
-                                <button class="toggle-btn ${this.chordFormState.type === 'dom7' ? 'active' : ''}" id="btn-form-type-dom7" style="padding: 6px 12px; font-size: 0.8rem;">ドミナント7th (7)</button>
-                            </div>
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 4px;">
+                            <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: bold; width: 75px;">3. タイプ:</span>
+                            <button class="toggle-btn ${this.chordFormState.type === 'maj7' ? 'active' : ''}" id="btn-form-type-maj7" style="padding: 4px 8px; font-size: 0.7rem;">Maj7</button>
+                            <button class="toggle-btn ${this.chordFormState.type === 'min7' ? 'active' : ''}" id="btn-form-type-min7" style="padding: 4px 8px; font-size: 0.7rem;">m7</button>
+                            <button class="toggle-btn ${this.chordFormState.type === 'dom7' ? 'active' : ''}" id="btn-form-type-dom7" style="padding: 4px 8px; font-size: 0.7rem;">7 (ドミナント)</button>
                         </div>
                     </div>
-
-                    <!-- 動的運指ガイダンス -->
-                    <div id="chord-form-guidance" style="background: rgba(255,255,255,0.02); border: 1px dashed rgba(251, 191, 36, 0.2); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; gap: 8px; font-size: 0.8rem; line-height: 1.45;">
-                        <!-- JSで動的に詳細と運指のコツを描画 -->
+                    <div id="chord-form-guidance" style="background: rgba(255,255,255,0.02); border: 1px dashed rgba(251, 191, 36, 0.2); border-radius: 8px; padding: 10px; font-size: 0.75rem; line-height: 1.4;">
                     </div>
                 </div>
-
-                <div class="action-area" style="display: flex; gap: 15px; margin-top: 5px;">
-                    <button class="action-btn" id="btn-start-game-2">
-                        <i class="fa-solid fa-gamepad"></i> ミニゲーム『Voicing Builder (コード作り)』に挑戦！
-                    </button>
+            `;
+        }
+        if (lessonId === 4) {
+            return `
+                <div class="lesson-header">
+                    <span class="lesson-badge"><i class="fa-solid fa-cubes"></i> Lesson 04</span>
+                    <h3 class="lesson-title">コード・トーン・ハーモナイズ</h3>
                 </div>
-            </div>
-        `;
+                <p class="lesson-desc">
+                    ルート、3度、5度、7度の基本の4和音にテンションを重ねる手法を学びます。<br>
+                    ジャズでお洒落なサウンドを作る基礎となる「積み重ね」のバリエーションです。
+                </p>
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass); border-radius: 12px; padding: 15px; text-align: center; font-size: 0.78rem;">
+                    <p style="margin-bottom: 8px; color: var(--text-secondary);">4和音の音を重ねる順番を工夫するだけで、お洒落な響きが変化します。</p>
+                    <div style="display: flex; justify-content: center; gap: 8px;">
+                        <button class="action-btn" onclick="window.audioEngine.playChord([48, 55, 59, 64], 0.8, 0.5)" style="padding: 8px 14px; font-size: 0.75rem;"><i class="fa-solid fa-volume-high"></i> Cmaj7 プレビュー</button>
+                        <button class="secondary-btn" onclick="window.audioEngine.playChord([48, 55, 59, 64, 66], 0.8, 0.5)" style="padding: 8px 14px; font-size: 0.75rem;"><i class="fa-solid fa-volume-high"></i> Cmaj9 プレビュー</button>
+                    </div>
+                </div>
+            `;
+        }
+        if (lessonId === 5) {
+            return `
+                <div class="lesson-header">
+                    <span class="lesson-badge"><i class="fa-solid fa-circle-nodes"></i> Lesson 05</span>
+                    <h3 class="lesson-title">コードの成り立ち (度数表現)</h3>
+                </div>
+                <p class="lesson-desc">
+                    コードが「どのような度数（距離）」の音で成り立っているか探検ましょう。<br>
+                    ルートから3度、5度、7度と順に重ねることで、コードの感情や役割が構築されます。
+                </p>
+                <div class="lesson-interactive-panel" style="display: flex; flex-direction: column; gap: 10px;">
+                    <div id="stepper-container-0b"></div>
+                    <div id="chord-detail-panel" style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-glass); border-radius: 12px; padding: 12px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.3); display: flex; flex-direction: column; gap: 10px;"></div>
+                    <div class="builder-nav-controls" style="display: flex; justify-content: space-between; align-items: center;">
+                        <button class="secondary-btn" id="btn-builder-prev" style="padding: 4px 10px; font-size: 0.75rem;"><i class="fa-solid fa-chevron-left"></i> 戻る</button>
+                        <button class="action-btn" id="btn-builder-next" style="padding: 4px 10px; font-size: 0.75rem; font-weight: bold;">次へ <i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+                </div>
+            `;
+        }
+        if (lessonId === 6) {
+            return `
+                <div class="lesson-header">
+                    <span class="lesson-badge"><i class="fa-solid fa-sitemap"></i> Lesson 06</span>
+                    <h3 class="lesson-title">ダイアトニック・コードを知ろう</h3>
+                </div>
+                <p class="lesson-desc">
+                    あるキー（調）のスケールの音だけで作られる7つの基本的なコードを**「ダイアトニックコード」**と呼びます。<br>
+                    これらを度数（ローマ数字: I, II, III...）で把握することが、ジャズのコード進行分析の鍵です。
+                </p>
+                <div class="lesson-interactive-panel" style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 12px; border: 1px solid var(--border-glass);">
+                    <div style="margin-bottom: 8px; font-size: 0.72rem; color: var(--text-muted);">キー: C メジャー・ダイアトニックコード</div>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;" id="diatonic-chords-list">
+                        <!-- JSで動的にボタン生成 -->
+                    </div>
+                </div>
+            `;
+        }
+        return '';
     }
 
-    getStep3Content() {
-        return `
-            <div class="lesson-header">
-                <span class="lesson-badge"><i class="fa-solid fa-bolt"></i> Step 3</span>
-                <h2 class="lesson-title">Step 3: アドリブソロ (ペンタ ＋ ターゲットノート)</h2>
-            </div>
-            <p class="lesson-desc">
-                ジャズのアドリブは、難しいスケール理論を使わなくても成立します。<br>
-                基本は弾き慣れた「<strong>Gマイナーペンタトニック</strong>」を弾き、コードが変わる瞬間に、そのコードの「<strong>3度または7度の音（ターゲットノート）</strong>」に着地するだけで、進行に完璧に沿ったジャジーなソロになります。
-            </p>
-            
-            <div class="lesson-interactive-panel">
-                <div style="background: rgba(255,255,255,0.02); padding: 20px; border-radius: 16px; border: 1px solid var(--border-glass); margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
-                    <div>
-                        <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;"><i class="fa-solid fa-music"></i> アドリブ練習用バッキング再生 (枯葉進行)</span>
-                        <div id="target-chord-readout" style="font-family: var(--font-heading); font-weight: 800; font-size: 1.6rem; color: var(--accent-amber); margin-top: 5px;">
-                            STOPPED
-                        </div>
+    getPhase3_4Lessons(lessonId) {
+        if (lessonId === 7) {
+            return `
+                <div class="lesson-header">
+                    <span class="lesson-badge"><i class="fa-solid fa-rainbow"></i> Lesson 07</span>
+                    <h3 class="lesson-title">メジャー・スケールで鼻歌アドリブ</h3>
+                </div>
+                <p class="lesson-desc">
+                    アドリブソロは、頭の中のメロディをそのまま指板に反映させる鼻歌のような演奏です。<br>
+                    明るい曲調の基本となる**Gメジャースケール**の音を光らせます。伴奏を再生して、自由に弾いてみましょう！
+                </p>
+                <div class="lesson-interactive-panel" style="background: rgba(255,255,255,0.02); padding: 15px; border-radius: 16px; border: 1px solid var(--border-glass);">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 0.72rem; color: var(--accent-amber); font-weight: bold;"><i class="fa-solid fa-play"></i> アドリブ・サンドボックス</span>
+                        <button class="action-btn" id="btn-toggle-sandbox-backing" style="padding: 6px 12px; font-size: 0.75rem;">伴奏を再生</button>
                     </div>
-                    <button class="action-btn" id="btn-toggle-target-playback">
-                        <i class="fa-solid fa-play"></i> バッキング再生
-                    </button>
-                </div>
-
-                <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-glass); border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);">
-                    <h4 style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 10px; font-weight: 700;"><i class="fa-solid fa-circle-check" style="color: var(--accent-amber);"></i> ターゲットノート・ルール</h4>
-                    <ul style="font-size: 0.85rem; margin-left: 20px; display: flex; flex-direction: column; gap: 8px; list-style-type: square; color: var(--text-secondary);">
-                        <li>基本スケール: <strong>Gマイナーペンタトニック</strong> (構成音: G, B♭, C, D, F / ソ, シ♭, ド, レ, ファ) が指板に黄色の丸で表示されます。</li>
-                        <li>コードが切り替わる「1拍前（4拍目）」になると、次のコードの「3度または7度の音（ターゲット着地音）」が<strong>赤く点滅</strong>します。</li>
-                        <li>まずは黄色い音を適当にパラパラと弾きながら、コードが切り替わる瞬間だけ赤い音を狙って着地してみましょう！</li>
-                    </ul>
-                </div>
-
-                <div class="action-area" style="display: flex; gap: 15px;">
-                    <button class="secondary-btn" id="btn-next-step-3">
-                        <i class="fa-solid fa-chevron-right"></i> コツを掴んだので、Step 4（バーチャル・セッション）へ進む
-                    </button>
-                </div>
-            </div>
-        `;
-    }
-
-    getStep4Content() {
-        return `
-            <div class="lesson-header">
-                <span class="lesson-badge"><i class="fa-solid fa-bolt"></i> Step 4</span>
-                <h2 class="lesson-title">Step 4: バーチャル・セッションシミュレーター</h2>
-            </div>
-            <p class="lesson-desc">
-                最後のステップです！セッション全体の流れと、マナーを体験しましょう。<br>
-                定番曲『枯葉 (Autumn Leaves)』の進行に合わせ、<strong>テーマ（メロディ） ⇔ コンピング（伴奏） ⇔ ソロ（アドリブ）</strong>の役割分担を画面の指示に従ってプレイします。
-            </p>
-            
-            <div class="lesson-interactive-panel">
-                <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.02); padding: 20px; border-radius: 16px; border: 1px solid var(--border-glass); margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
-                    <div>
-                        <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;"><i class="fa-solid fa-microphone-lines"></i> SESSION PLAYER</span>
-                        <div style="display: flex; align-items: center; gap: 20px; margin-top: 5px;">
-                            <span id="session-chord" style="font-family: var(--font-heading); font-weight: 800; font-size: 1.8rem; color: var(--accent-amber);">STOPPED</span>
-                            <span id="session-bar-count" style="font-size: 0.95rem; color: var(--text-muted); font-weight: 600;">0 / 32小節</span>
-                        </div>
-                    </div>
-                    
-                    <button class="action-btn" id="btn-start-session" style="background: linear-gradient(135deg, var(--accent-purple) 0%, #6366f1 100%); box-shadow: 0 4px 20px rgba(99, 102, 241, 0.45);">
-                        <i class="fa-solid fa-trumpets"></i> 🎺 セッションを開始する！
-                    </button>
-                </div>
-
-                <!-- ロール・指示インジケーター -->
-                <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-glass); border-radius: 20px; padding: 25px; text-align: center; margin-bottom: 20px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);" id="session-role-card">
-                    <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600;">現在の役割</span>
-                    <h3 id="session-role-title" style="font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800; margin: 10px 0; color: #fff;">
-                        セッション待機中
-                    </h3>
-                    <p id="session-role-instruction" style="font-size: 0.9rem; color: var(--text-muted);">
-                        ボタンを押すと、ドラム・ベース・ピアノ伴奏による「枯葉」のセッションがスタートします。
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 8px; line-height: 1.35; margin-bottom: 0;">
+                        指板上のオレンジ色のスケール音（G, A, B, C, D, E, F#）を適当に鳴らすだけで、絶対に外さないオシャレなフレーズが生まれます。
                     </p>
                 </div>
-
-                <div id="session-tips-box" style="font-size: 0.85rem; color: var(--text-secondary); background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 12px; padding: 12px 20px; margin-bottom: 20px; min-height: 40px; line-height: 1.6;">
-                    <i class="fa-solid fa-circle-question" style="color: var(--accent-blue);"></i> <strong>現場のマナー</strong>: イントロからテーマの演奏中は、キーボードの音やフロントのフレーズをよく聴きながら、自分の音量を控えめにするのが美しいアンサンブルの第一歩です。
+            `;
+        }
+        if (lessonId === 8) {
+            return `
+                <div class="lesson-header">
+                    <span class="lesson-badge"><i class="fa-solid fa-bolt-lightning"></i> Lesson 08</span>
+                    <h3 class="lesson-title">オルタード・スケール（解決の緊張感）</h3>
                 </div>
-            </div>
-        `;
+                <p class="lesson-desc">
+                    ドミナント7th（G7等）のとき、あえて外れたスリリングな音を加えることで強烈な「緊張（テンション）」を作ります。<br>
+                    これが次のトニック（Cmaj7等）に着地（解決）した瞬間に、極上の「安心感（解決）」をもたらします。
+                </p>
+                <div class="lesson-interactive-panel" style="background: rgba(255,255,255,0.02); padding: 15px; border-radius: 12px; border: 1px solid var(--border-glass); text-align: center;">
+                    <span style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-bottom: 8px;">G7 (オルタード緊張) ➔ Cmaj7 (メジャー解決) デモ</span>
+                    <button class="action-btn" id="btn-play-resolve-demo" style="padding: 8px 16px; font-size: 0.8rem;">
+                        <i class="fa-solid fa-headphones"></i> 緊張➔解決デモを聴く
+                    </button>
+                </div>
+            `;
+        }
+        if (lessonId === 9) {
+            return `
+                <div class="lesson-header">
+                    <span class="lesson-badge"><i class="fa-solid fa-route"></i> Lesson 09</span>
+                    <h3 class="lesson-title">コード・トーン（アルペジオ）の道筋</h3>
+                </div>
+                <p class="lesson-desc">
+                    スケールを適当に弾くだけでなく、コードの構成音（アルペジオ）をなぞるように弾くことで、コード進行に完全に寄り添った説得力のあるアドリブが可能になります。
+                </p>
+                <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 12px; border: 1px solid var(--border-glass); font-size: 0.75rem; line-height: 1.4;">
+                    指板上に **Gm7 のコードトーン (G, B♭, D, F)** を表示します。<br>
+                    ルートから順番に指板のハイライトをクリックして、コードアルペジオの「光る道筋」をなぞってみましょう。
+                </div>
+            `;
+        }
+        if (lessonId === 10) {
+            return `
+                <div class="lesson-header">
+                    <span class="lesson-badge"><i class="fa-solid fa-gamepad"></i> Lesson 10</span>
+                    <h3 class="lesson-title">ターゲットノート着地ゲーム</h3>
+                </div>
+                <p class="lesson-desc">
+                    スケールのアドリブソロを弾きながら、コードが切り替わる瞬間だけ、そのコードの**3度または7度の音（ターゲットノート）**を狙って着地します。コードの色彩がグッと際立ちます。
+                </p>
+                <div class="lesson-interactive-panel">
+                    <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 12px; border: 1px solid var(--border-glass); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: bold;"><i class="fa-solid fa-music"></i> 枯葉バッキング進行</span>
+                            <div id="target-chord-readout" style="font-family: var(--font-heading); font-weight: 800; font-size: 1.25rem; color: var(--accent-amber); margin-top: 2px;">STOPPED</div>
+                        </div>
+                        <button class="action-btn" id="btn-toggle-target-playback" style="padding: 6px 12px; font-size: 0.75rem;">バッキング再生</button>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass); border-radius: 12px; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; margin-bottom: 12px;">
+                        <div>
+                            <span style="color: var(--text-muted);"><i class="fa-solid fa-hand-pointer"></i> 着地判定</span>
+                            <div id="adlib-feedback" style="font-weight: 700; color: var(--text-secondary); margin-top: 2px;">再生を開始して、光る音をクリック！</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <span style="color: var(--text-muted);">ナイス着地</span>
+                            <div id="adlib-landing-count" style="font-family: var(--font-heading); font-weight: 800; font-size: 1.25rem; color: var(--accent-amber);">0 回</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        if (lessonId === 11) {
+            return `
+                <div class="lesson-header">
+                    <span class="lesson-badge"><i class="fa-solid fa-palette"></i> Lesson 11</span>
+                    <h3 class="lesson-title">モード・スケールの色彩 (ドリアン＆ミクソ)</h3>
+                </div>
+                <p class="lesson-desc">
+                    ジャズの真髄である「モード（旋法）」を学びます。コードの背景に特定の雰囲気を漂わせるスケールです。<br>
+                    マイナーコードで使される哀愁の**「ドリアン」**、ドミナントコードで使われるファンキーな**「ミクソリディアン」**を体験しましょう。
+                </p>
+                <div class="lesson-interactive-panel" style="display: flex; gap: 10px; justify-content: center;">
+                    <button class="action-btn" id="btn-mode-dorian" style="padding: 8px 16px; font-size: 0.8rem; background: linear-gradient(135deg, var(--accent-blue) 0%, #2563eb 100%);"><i class="fa-solid fa-cloud-moon"></i> G ドリアン (哀愁)</button>
+                    <button class="action-btn" id="btn-mode-mixo" style="padding: 8px 16px; font-size: 0.8rem; background: linear-gradient(135deg, var(--accent-amber) 0%, #d97706 100%);"><i class="fa-solid fa-sun"></i> G ミクソリディアン (ファンク)</button>
+                </div>
+            `;
+        }
+        return '';
+    }
+
+    getPhase5_6Lessons(lessonId) {
+        if (lessonId === 12 || lessonId === 13) {
+            const isNonDiatonic = lessonId === 13;
+            return `
+                <div class="lesson-header">
+                    <span class="lesson-badge"><i class="fa-solid fa-chart-pie"></i> Lesson ${lessonId === 12 ? '12' : '13'}</span>
+                    <h3 class="lesson-title">曲を分析しよう ── ${isNonDiatonic ? 'ノンダイアトニック編' : 'ダイアトニック編'}</h3>
+                </div>
+                <p class="lesson-desc">
+                    ${isNonDiatonic ? 'ダイアトニックコード（調性内の音）からはみ出すことで、楽曲にスリリングな推進力（セカンダリードミナント等）を与えます。' : '名曲『枯葉 (Autumn Leaves)』のコード進行を分析し、II-V-I などの基本的なダイアトニック進行の連結を学びます。'}
+                </p>
+                <div class="lesson-interactive-panel" style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 12px; border: 1px solid var(--border-glass);">
+                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 6px;">枯葉（Autumn Leaves）進行アナライズ</div>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px;">
+                        ${this.autumnLeavesProgression.map((prog, idx) => {
+                            const isSpecial = isNonDiatonic && (prog.chord === 'D7' || prog.chord === 'G7');
+                            const isNormal = !isNonDiatonic && !isSpecial;
+                            const border = isSpecial ? '1px solid var(--color-root)' : (isNormal ? '1px solid var(--accent-blue)' : '1px solid var(--border-glass)');
+                            return `<button class="analyse-chord-btn" data-chord-idx="${idx}" style="padding: 6px 0; border-radius: 6px; font-size: 0.72rem; background: rgba(0,0,0,0.2); border: ${border}; color: #fff; cursor: pointer;">${prog.chord}</button>`;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+        }
+        if (lessonId === 14) {
+            return `
+                <div class="lesson-header">
+                    <span class="lesson-badge"><i class="fa-solid fa-music"></i> Lesson 14</span>
+                    <h3 class="lesson-title">定番フレーズ (Lick) を覚えよう</h3>
+                </div>
+                <p class="lesson-desc">
+                    ジャズの先輩たちが残した「II-V-I 定番フレーズ（リック）」を自分の引き出しに入れることで、手癖からジャズらしいアドリブを組み立てることができます。
+                </p>
+                <div class="lesson-interactive-panel" style="background: rgba(255,255,255,0.02); padding: 15px; border-radius: 12px; border: 1px solid var(--border-glass); text-align: center;">
+                    <span style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-bottom: 8px;">枯葉 II-V-I 定番メロディフレーズ</span>
+                    <button class="action-btn" id="btn-play-lick" style="padding: 8px 16px; font-size: 0.8rem;">
+                        <i class="fa-solid fa-play"></i> 定番リックを再生＆ガイド表示
+                    </button>
+                </div>
+            `;
+        }
+        if (lessonId === 15) {
+            return `
+                <div class="lesson-header">
+                    <span class="lesson-badge"><i class="fa-solid fa-shapes"></i> Lesson 15</span>
+                    <h3 class="lesson-title">テンション・コードの押さえ方</h3>
+                </div>
+                <p class="lesson-desc">
+                    9th や 13th などのテンションを追加し、ジャズギタリストが実際にセッションで多用するプロの実践コードフォーム（グリップ）を習得します。
+                </p>
+                <div class="lesson-interactive-panel" style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 12px; border: 1px solid var(--border-glass);">
+                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 6px;">押さえるフォームを選んで指板に表示：</div>
+                    <div style="display: flex; gap: 8px; justify-content: center;">
+                        <button class="tension-select-btn action-btn" data-grip="g79" style="padding: 6px 12px; font-size: 0.75rem;">G7 (9th)</button>
+                        <button class="tension-select-btn action-btn" data-grip="g713" style="padding: 6px 12px; font-size: 0.75rem;">G7 (13th)</button>
+                        <button class="tension-select-btn action-btn" data-grip="cmaj9" style="padding: 6px 12px; font-size: 0.75rem;">Cmaj9</button>
+                    </div>
+                </div>
+            `;
+        }
+        if (lessonId === 16) {
+            return `
+                <div class="lesson-header">
+                    <span class="lesson-badge"><i class="fa-solid fa-drum"></i> Lesson 16</span>
+                    <h3 class="lesson-title">タイム感と実践コンピング (2・4拍)</h3>
+                </div>
+                <p class="lesson-desc">
+                    ジャズのリズム（スウィング）は、ドラムのハイハットが鳴る**2拍目・4拍目**を強く意識します。ここにタイム感を合わせることでスウィング感が生まれます。
+                </p>
+                <div class="lesson-interactive-panel">
+                    <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.02); padding: 15px; border-radius: 12px; border: 1px solid var(--border-glass); margin-bottom: 12px;">
+                        <div>
+                            <span style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600;"><i class="fa-solid fa-gauge-high"></i> TEMPO CONTROL</span>
+                            <div style="display: flex; align-items: center; gap: 10px; margin-top: 4px;">
+                                <input type="range" id="slider-bpm" min="70" max="160" value="110" style="width: 100px; accent-color: var(--accent-amber);">
+                                <span id="label-bpm" style="font-family: var(--font-heading); font-weight: 800; color: var(--accent-amber); font-size: 1rem;">110 BPM</span>
+                            </div>
+                        </div>
+                        <button class="action-btn" id="btn-toggle-swing" style="padding: 6px 12px; font-size: 0.75rem;">スウィング再生</button>
+                    </div>
+                    <div class="action-area" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button class="action-btn" id="btn-start-swing-tap" style="padding: 8px 14px; font-size: 0.75rem;"><i class="fa-solid fa-gamepad"></i> Swing Tap (2・4拍ゲーム)</button>
+                        <button class="secondary-btn" id="btn-start-voicing-builder" style="padding: 8px 14px; font-size: 0.75rem;"><i class="fa-solid fa-gamepad"></i> Voicing Builder (コード作り)</button>
+                    </div>
+                </div>
+            `;
+        }
+        if (lessonId === 17) {
+            return `
+                <div class="lesson-header">
+                    <span class="lesson-badge"><i class="fa-solid fa-compact-disc"></i> Lesson 17</span>
+                    <h3 class="lesson-title">イントロ＆エンディングを作ろう</h3>
+                </div>
+                <p class="lesson-desc">
+                    セッション曲の始まりと終わりは、あらかじめ用意された定番の常套句（イントロ＆エンディング進行）を使います。
+                </p>
+                <div class="lesson-interactive-panel" style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 12px; border: 1px solid var(--border-glass); text-align: center;">
+                    <span style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-bottom: 8px;">定番常套句デモ：</span>
+                    <div style="display: flex; gap: 8px; justify-content: center;">
+                        <button class="action-btn" id="btn-play-intro" style="padding: 8px 14px; font-size: 0.75rem;"><i class="fa-solid fa-headphones"></i> 逆循環イントロ進行</button>
+                        <button class="action-btn" id="btn-play-ending" style="padding: 8px 14px; font-size: 0.75rem;"><i class="fa-solid fa-headphones"></i> ジャズ定番エンディング</button>
+                    </div>
+                </div>
+            `;
+        }
+        if (lessonId === 18) {
+            return `
+                <div class="lesson-header">
+                    <span class="lesson-badge"><i class="fa-solid fa-bolt"></i> Lesson 18</span>
+                    <h3 class="lesson-title">実際の曲に挑戦 (Autumn Leaves)</h3>
+                </div>
+                <p class="lesson-desc">
+                    いよいよバーチャルセッションです！<br>
+                    ドラム、ベース、ピアノとの合奏で、指示に従ってメロディ演奏、バッキング、ソロの役割を果たします。
+                </p>
+                <div class="lesson-interactive-panel">
+                    <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.02); padding: 15px; border-radius: 12px; border: 1px solid var(--border-glass); margin-bottom: 12px;">
+                        <div>
+                            <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: bold;"><i class="fa-solid fa-microphone-lines"></i> SESSION PLAYER</span>
+                            <div style="display: flex; align-items: center; gap: 10px; margin-top: 2px;">
+                                <span id="session-chord" style="font-family: var(--font-heading); font-weight: 800; font-size: 1.25rem; color: var(--accent-amber);">STOPPED</span>
+                                <span id="session-bar-count" style="font-size: 0.8rem; color: var(--text-muted);">0 / 32小節</span>
+                            </div>
+                        </div>
+                        <button class="action-btn" id="btn-start-session" style="padding: 8px 14px; font-size: 0.75rem; background: linear-gradient(135deg, var(--accent-purple) 0%, #6366f1 100%);"><i class="fa-solid fa-guitar"></i> セッション開始！</button>
+                    </div>
+                    <div style="display: flex; justify-content: center; gap: 30px; margin-bottom: 12px; position: relative;" id="session-band-members">
+                        <div class="band-member-wrapper" id="member-bass" style="display: flex; flex-direction: column; align-items: center; position: relative;">
+                            <div class="band-avatar" style="width: 44px; height: 44px; border-radius: 50%; background: rgba(59,130,246,0.15); border: 2px solid var(--accent-blue); display: flex; align-items: center; justify-content: center; color: var(--accent-blue); font-size: 1.25rem; transition: transform 0.2s;">
+                                <i class="fa-solid fa-guitar"></i>
+                            </div>
+                            <span style="font-size: 0.65rem; color: var(--text-muted); margin-top: 4px;">Billy (B)</span>
+                            <div class="session-bubble" id="bubble-bass">Yeah!</div>
+                        </div>
+                        <div class="band-member-wrapper" id="member-drums" style="display: flex; flex-direction: column; align-items: center; position: relative;">
+                            <div class="band-avatar" style="width: 44px; height: 44px; border-radius: 50%; background: rgba(16,185,129,0.15); border: 2px solid var(--accent-emerald); display: flex; align-items: center; justify-content: center; color: var(--accent-emerald); font-size: 1.25rem; transition: transform 0.2s;">
+                                <i class="fa-solid fa-drum"></i>
+                            </div>
+                            <span style="font-size: 0.65rem; color: var(--text-muted); margin-top: 4px;">Dan (D)</span>
+                            <div class="session-bubble" id="bubble-drums">Go!</div>
+                        </div>
+                        <div class="band-member-wrapper" id="member-piano" style="display: flex; flex-direction: column; align-items: center; position: relative;">
+                            <div class="band-avatar" style="width: 44px; height: 44px; border-radius: 50%; background: rgba(167,139,250,0.15); border: 2px solid var(--accent-purple); display: flex; align-items: center; justify-content: center; color: var(--accent-purple); font-size: 1.25rem; transition: transform 0.2s;">
+                                <i class="fa-solid fa-music"></i>
+                            </div>
+                            <span style="font-size: 0.65rem; color: var(--text-muted); margin-top: 4px;">Pam (P)</span>
+                            <div class="session-bubble" id="bubble-piano">Nice!</div>
+                        </div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-glass); border-radius: 12px; padding: 15px; text-align: center; margin-bottom: 10px;" id="session-role-card">
+                        <span style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">現在の役割</span>
+                        <h4 id="session-role-title" style="font-family: var(--font-heading); font-size: 1.4rem; font-weight: 800; margin: 5px 0; color: #fff;">待機中</h4>
+                        <p id="session-role-instruction" style="font-size: 0.75rem; color: var(--text-secondary); margin: 0;">セッションを開始するとバンド演奏が始まります。</p>
+                    </div>
+                    <div id="session-tips-box" style="font-size: 0.75rem; color: var(--text-secondary); background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 8px; padding: 8px 12px;">
+                        <i class="fa-solid fa-circle-question" style="color: var(--accent-blue);"></i> <strong>現場のマナー</strong>: イントロからテーマの演奏中は、キーボードの音やフロントのフレーズをよく聴きながら、自分の音量を控えめにするのが美しいアンサンブル of 第一歩です。
+                    </div>
+                </div>
+            `;
+        }
+        if (lessonId === 19) {
+            return `
+                <div class="lesson-header">
+                    <span class="lesson-badge"><i class="fa-solid fa-users"></i> Lesson 19</span>
+                    <h3 class="lesson-title">ジャム・セッションに参加してみよう！</h3>
+                </div>
+                <p class="lesson-desc">
+                    ついに最終レッスンです！実際のジャムセッションでのマナー、ルール、そしてその場を楽しむ「ジャズの流儀」についてクイズで確認します。
+                </p>
+                <div class="lesson-interactive-panel" id="manner-quiz-area" style="background: rgba(255,255,255,0.02); padding: 15px; border-radius: 12px; border: 1px solid var(--border-glass);">
+                    <!-- クイズが動的に表示されます -->
+                </div>
+            `;
+        }
+        return '';
     }
 
     attachLessonEvents() {
-        // Step 0-A
-        const btnStart0a = document.getElementById('btn-start-game-0a');
-        if (btnStart0a) btnStart0a.addEventListener('click', () => this.startNoteRunGame());
+        // Lesson 2 音名あてゲーム
+        const btnNoterun = document.getElementById('btn-start-game-noterun');
+        if (btnNoterun) btnNoterun.addEventListener('click', () => this.startNoteRunGame());
+        const btnHunter = document.getElementById('btn-start-game-hunter');
+        if (btnHunter) btnHunter.addEventListener('click', () => this.startFretboardHunterGame());
 
-        const btnStartMemorize0a = document.getElementById('btn-start-memorize-0a');
-        if (btnStartMemorize0a) btnStartMemorize0a.addEventListener('click', () => this.startMemorizeMode());
+        // Lesson 3 シェルコードフォーム
+        if (this.currentStep === '1' && this.currentLesson === 3) {
+            this.setupChordFormExplorerEvents();
+        }
 
-        // Step 0-B
-        if (this.currentStep === '0b') {
+        // Lesson 5 度数ビルダー
+        if (this.currentStep === '2' && this.currentLesson === 5) {
             this.setupStep0BBuilder();
         }
 
-        // Step 1
+        // Lesson 6 ダイアトニック
+        if (this.currentStep === '2' && this.currentLesson === 6) {
+            this.setupDiatonicLessonEvents();
+        }
+
+        // Lesson 7 アドリブサンドボックス
+        const btnToggleSandbox = document.getElementById('btn-toggle-sandbox-backing');
+        if (btnToggleSandbox) {
+            btnToggleSandbox.addEventListener('click', () => this.toggleSandboxBacking());
+        }
+
+        // Lesson 8 緊張と解決
+        const btnPlayResolve = document.getElementById('btn-play-resolve-demo');
+        if (btnPlayResolve) {
+            btnPlayResolve.addEventListener('click', () => this.playResolveDemo());
+        }
+
+        // Lesson 10 ターゲット着地
+        const btnToggleTarget = document.getElementById('btn-toggle-target-playback');
+        if (btnToggleTarget) {
+            btnToggleTarget.addEventListener('click', () => this.toggleTargetPlayback());
+        }
+
+        // Lesson 11 モード
+        const btnDorian = document.getElementById('btn-mode-dorian');
+        if (btnDorian) btnDorian.addEventListener('click', () => this.showModeOnFretboard('dorian'));
+        const btnMixo = document.getElementById('btn-mode-mixo');
+        if (btnMixo) btnMixo.addEventListener('click', () => this.showModeOnFretboard('mixo'));
+
+        // Lesson 12 & 13 アナライズ
+        document.querySelectorAll('.analyse-chord-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const idx = parseInt(btn.getAttribute('data-chord-idx'), 10);
+                this.previewAnalyseChord(idx);
+            });
+        });
+
+        // Lesson 14 リックお手本
+        const btnPlayLick = document.getElementById('btn-play-lick');
+        if (btnPlayLick) btnPlayLick.addEventListener('click', () => this.playLickDemo());
+
+        // Lesson 15 テンション
+        document.querySelectorAll('.tension-select-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const grip = btn.getAttribute('data-grip');
+                this.showTensionGrip(grip);
+            });
+        });
+
+        // Lesson 16 スウィング＆コンピング
         const btnToggleSwing = document.getElementById('btn-toggle-swing');
         if (btnToggleSwing) btnToggleSwing.addEventListener('click', () => this.toggleSwingMetronome());
-
         const sliderBpm = document.getElementById('slider-bpm');
         if (sliderBpm) {
             sliderBpm.addEventListener('input', (e) => {
@@ -1421,53 +1831,25 @@ class SilentRhythmApp {
                 if (label) label.textContent = `${bpm} BPM`;
             });
         }
+        const btnStartSwingTap = document.getElementById('btn-start-swing-tap');
+        if (btnStartSwingTap) btnStartSwingTap.addEventListener('click', () => this.startSwingTapGame());
+        const btnStartVoicingBuilder = document.getElementById('btn-start-voicing-builder');
+        if (btnStartVoicingBuilder) btnStartVoicingBuilder.addEventListener('click', () => this.startVoicingBuilderGame());
 
-        const btnNextStep1 = document.getElementById('btn-next-step-1');
-        if (btnNextStep1) btnNextStep1.addEventListener('click', () => { this.unlockStep('2'); this.switchStep('2'); });
+        // Lesson 17 イントロ＆エンディング
+        const btnPlayIntro = document.getElementById('btn-play-intro');
+        if (btnPlayIntro) btnPlayIntro.addEventListener('click', () => this.playIntroDemo());
+        const btnPlayEnding = document.getElementById('btn-play-ending');
+        if (btnPlayEnding) btnPlayEnding.addEventListener('click', () => this.playEndingDemo());
 
-        // Step 2
-        const btnPianoOff = document.getElementById('btn-piano-off');
-        const btnPianoOn = document.getElementById('btn-piano-on');
-        const descVoicing = document.getElementById('voicing-guide-desc');
-        
-        if (btnPianoOff && btnPianoOn) {
-            btnPianoOff.addEventListener('click', () => {
-                btnPianoOff.classList.add('active');
-                btnPianoOn.classList.remove('active');
-                window.audioEngine.pianoEnabled = false;
-                if (descVoicing) descVoicing.textContent = `ルート音を含む「シェルコード(3音)」を弾いてバンドを支えましょう。`;
-                if (this.currentStep === '2') {
-                    this.updateChordFormVisualization(false);
-                }
-            });
-            btnPianoOn.addEventListener('click', () => {
-                btnPianoOn.classList.add('active');
-                btnPianoOff.classList.remove('active');
-                window.audioEngine.pianoEnabled = true;
-                if (descVoicing) descVoicing.textContent = `ベースがいるためルートは省略し、3度と7度だけの「ガイドトーン(2音)」でピアノとぶつからないように弾きましょう。`;
-                if (this.currentStep === '2') {
-                    this.updateChordFormVisualization(false);
-                }
-            });
-        }
-
-        if (this.currentStep === '2') {
-            this.setupChordFormExplorerEvents();
-        }
-
-        const btnStartGame2 = document.getElementById('btn-start-game-2');
-        if (btnStartGame2) btnStartGame2.addEventListener('click', () => this.startVoicingBuilderGame());
-
-        // Step 3
-        const btnToggleTarget = document.getElementById('btn-toggle-target-playback');
-        if (btnToggleTarget) btnToggleTarget.addEventListener('click', () => this.toggleTargetPlayback());
-
-        const btnNextStep3 = document.getElementById('btn-next-step-3');
-        if (btnNextStep3) btnNextStep3.addEventListener('click', () => { this.unlockStep('4'); this.switchStep('4'); });
-
-        // Step 4
+        // Lesson 18 セッション
         const btnStartSession = document.getElementById('btn-start-session');
-        if (btnStartSession) btnStartSession.addEventListener('click', () => this.toggleSessionPlayback());
+        if (btnStartSession) btnStartSession.addEventListener('click', () => this.startSessionPlayer());
+
+        // Lesson 19 マナークイズ
+        if (this.currentStep === '6' && this.currentLesson === 19) {
+            this.renderMannerQuiz();
+        }
     }
 
     /* ====================================================
@@ -2018,12 +2400,82 @@ class SilentRhythmApp {
             const chordText = document.getElementById('target-chord-readout');
             if (chordText) chordText.textContent = 'STOPPED';
             this.fretboard.clearMarkers();
+
+            // 着地練習の結果をフィードバック表示に残す
+            const feedback = document.getElementById('adlib-feedback');
+            if (feedback && this.adlibState) {
+                feedback.textContent = this.adlibState.landings > 0
+                    ? `お疲れさま！ ${this.adlibState.landings} 回のナイス着地でした 🎷`
+                    : '再生を開始して、光っている音をクリックしてみよう！';
+                feedback.style.color = 'var(--text-secondary)';
+            }
+            this.adlibState = null;
         } else {
             btn.innerHTML = '<i class="fa-solid fa-square"></i> 停止';
             window.audioEngine.pianoEnabled = true;
+
+            // 着地判定のステートを初期化
+            this.adlibState = { targets: [], isLandingWindow: false, landings: 0 };
+            const landingCount = document.getElementById('adlib-landing-count');
+            if (landingCount) landingCount.textContent = '0 回';
+
             window.audioEngine.startBackingTrack(this.autumnLeavesProgression, (tick) => {
                 this.updateAdlibFretboardGuide(tick.chord, tick.beatIndex, tick.stepIndex);
             });
+        }
+    }
+
+    // Step 3: アドリブ練習中の指板クリックをリアルタイム判定
+    handleAdlibClick(midi, stringIndex, fret) {
+        if (!this.adlibState) return;
+        const pc = midi % 12;
+        const gMinorPentaPitchClasses = [7, 10, 0, 2, 5]; // G, B♭, C, D, F
+        const feedback = document.getElementById('adlib-feedback');
+        
+        const coords = this.getFretboardClientCoords(stringIndex, fret);
+
+        if (this.adlibState.isLandingWindow && this.adlibState.targets.includes(pc)) {
+            // 同じ着地ウィンドウ内の連打では加点しない
+            if (!this.adlibState.windowScored) {
+                this.adlibState.windowScored = true;
+                this.adlibState.landings++;
+                this.addScore(5);
+                if (feedback) feedback.innerHTML = '🎯 ナイス着地！ ターゲットノートにヒット！ <span style="font-size: 0.8rem;">(+5 pts)</span>';
+                const landingCount = document.getElementById('adlib-landing-count');
+                if (landingCount) landingCount.textContent = `${this.adlibState.landings} 回`;
+
+                // Neon feedback at click coordinate
+                this.triggerNeonFeedback('Nice Landing!', coords.x, coords.y);
+
+                // Virtual band members cheer
+                if (this.currentStep === '6') {
+                    const quotes = ['Nice!', 'Yeah!', 'Groovy!', 'Swing it!', 'Go ahead!', 'Cookin!', 'Sweet!'];
+                    const quote = quotes[Math.floor(Math.random() * quotes.length)];
+                    const members = ['bass', 'drums', 'piano'];
+                    const member = members[Math.floor(Math.random() * members.length)];
+                    this.triggerBandMemberSpeech(member, quote);
+                }
+            } else {
+                if (feedback) feedback.innerHTML = '🎯 ナイス着地！';
+            }
+            if (feedback) {
+                feedback.style.color = 'var(--accent-amber)';
+                if (window.gsap) {
+                    window.gsap.fromTo(feedback, { scale: 1.15 }, { scale: 1, duration: 0.35, ease: 'back.out(2)' });
+                }
+            }
+        } else if (gMinorPentaPitchClasses.includes(pc)) {
+            if (feedback) {
+                feedback.textContent = '♪ いい音！ ペンタトニックの音です。4拍目の赤い音を狙おう';
+                feedback.style.color = '#34d399';
+            }
+            this.triggerNeonFeedback('Swing!', coords.x, coords.y);
+        } else {
+            if (feedback) {
+                feedback.textContent = '⚠ スケール外の音。黄色く光る音に戻りましょう';
+                feedback.style.color = '#f87171';
+            }
+            this.triggerNeonFeedback('Out!', coords.x, coords.y);
         }
     }
 
@@ -2060,6 +2512,22 @@ class SilentRhythmApp {
         
         if (chordText) chordText.textContent = chord;
         if (barText) barText.textContent = `${bar} / ${totalBars}小節`;
+
+        // Swing bounce animation for band members on every beat
+        const avatars = document.querySelectorAll('.band-avatar');
+        avatars.forEach((avatar) => {
+            const rotate = (beatIndex % 2 === 0) ? 6 : -6;
+            if (window.gsap) {
+                window.gsap.to(avatar, {
+                    y: -4,
+                    rotation: rotate,
+                    duration: 0.15,
+                    yoyo: true,
+                    repeat: 1,
+                    ease: "power1.inOut"
+                });
+            }
+        });
         
         if (bar <= 8) {
             window.audioEngine.pianoEnabled = true;
@@ -2095,7 +2563,19 @@ class SilentRhythmApp {
             window.audioEngine.stopBackingTrack();
             this.resetSessionUI();
             this.addScore(150);
-            alert('セッション1コーラス完了！おめでとうございます！ 150 pts を獲得しました！');
+            this.triggerConfetti();
+
+            // alert()の代わりに世界観を保ったまま完走を演出
+            const btn = document.getElementById('btn-start-session');
+            if (btn) btn.innerHTML = '<i class="fa-solid fa-trumpets"></i> 🎺 セッションを開始する！';
+            if (roleTitle) {
+                roleTitle.textContent = '🎉 セッション1コーラス完走！';
+                roleTitle.style.color = 'var(--accent-amber)';
+            }
+            if (roleDesc) roleDesc.textContent = 'おめでとうございます！150 pts を獲得しました。伴奏・ソロ・テーマの全役割を体験できましたね。繰り返すほどセッション本番に強くなります！';
+            if (window.gsap && roleTitle) {
+                window.gsap.fromTo(roleTitle, { scale: 1.3 }, { scale: 1, duration: 0.6, ease: 'back.out(2)' });
+            }
         }
     }
 
@@ -2154,7 +2634,14 @@ class SilentRhythmApp {
             const nextStep = (stepIndex + 1) % this.autumnLeavesProgression.length;
             const nextChord = this.autumnLeavesProgression[nextStep].chord;
             const targets = this.getChordTargetDegrees(nextChord);
-            
+
+            // 着地判定ウィンドウを開く (4拍目のみターゲットヒットが有効・加点は1回まで)
+            if (this.adlibState) {
+                this.adlibState.targets = [targets.third, targets.seventh];
+                this.adlibState.isLandingWindow = true;
+                this.adlibState.windowScored = false;
+            }
+
             this.fretboard.openStrings.forEach(openMidi => {
                 for (let fret = 0; fret <= this.fretboard.numFrets; fret++) {
                     const midi = openMidi + fret;
@@ -2169,12 +2656,17 @@ class SilentRhythmApp {
                 readout.innerHTML = `${chord} -> <span style="color: var(--color-root); animation: neon-blink 0.5s infinite alternate;">NEXT: ${nextChord} のターゲット！</span>`;
             }
         } else {
+            // 着地判定ウィンドウを閉じる (1〜3拍目)
+            if (this.adlibState) {
+                this.adlibState.isLandingWindow = false;
+            }
+
             this.fretboard.openStrings.forEach(openMidi => {
                 for (let fret = 0; fret <= this.fretboard.numFrets; fret++) {
                     const midi = openMidi + fret;
                     const pc = midi % 12;
                     if (gMinorPentaPitchClasses.includes(pc)) {
-                        const type = (pc === 7) ? 'root' : 'scale'; 
+                        const type = (pc === 7) ? 'root' : 'scale';
                         this.fretboard.addMarker(midi, type);
                     }
                 }
@@ -2339,6 +2831,7 @@ class SilentRhythmApp {
         const locKey = `${stringIndex}-${fret}`;
         const isCorrect = (midi % 12) === this.gameState.targetPitchClass;
         const panel = document.getElementById('lesson-panel');
+        const coords = this.getFretboardClientCoords(stringIndex, fret);
 
         if (isCorrect) {
             if (!this.gameState.foundLocations.has(locKey)) {
@@ -2348,6 +2841,7 @@ class SilentRhythmApp {
                 this.fretboard.addMarker(locKey, '3rd');
                 this.fretboard.renderMarkers();
                 this.updateNoteRunUI();
+                this.triggerNeonFeedback('Swing!', coords.x, coords.y);
                 
                 // すべての正しい位置をハント完了したか
                 if (this.gameState.foundLocations.size === this.gameState.correctLocations.length) {
@@ -2368,6 +2862,7 @@ class SilentRhythmApp {
         } else {
             window.audioEngine.playIncorrectSfx();
             panel.classList.add('incorrect-pulse');
+            this.triggerNeonFeedback('Out!', coords.x, coords.y);
             
             // 指板全体を揺らすシェイクエフェクト
             if (window.gsap) {
@@ -2521,6 +3016,7 @@ class SilentRhythmApp {
 
         const locKey = `${stringIndex}-${fret}`;
         const isCorrect = (midi % 12) === this.gameState.targetPitchClass;
+        const coords = this.getFretboardClientCoords(stringIndex, fret);
         
         if (isCorrect) {
             if (!this.gameState.foundLocations.has(locKey)) {
@@ -2529,6 +3025,7 @@ class SilentRhythmApp {
                 this.fretboard.addMarker(locKey, '3rd'); // 指定座標に緑マーカー表示
                 this.fretboard.renderMarkers();
                 this.updateHunterGameUI();
+                this.triggerNeonFeedback('Swing!', coords.x, coords.y);
                 
                 if (this.gameState.foundLocations.size === this.gameState.correctLocations.length) {
                     clearInterval(this.gameInterval);
@@ -2540,6 +3037,7 @@ class SilentRhythmApp {
             window.audioEngine.playIncorrectSfx();
             const panel = document.getElementById('lesson-panel');
             panel.classList.add('incorrect-pulse');
+            this.triggerNeonFeedback('Out!', coords.x, coords.y);
             
             // 指板全体を揺らすシェイクエフェクト
             if (window.gsap) {
@@ -2612,9 +3110,9 @@ class SilentRhythmApp {
         this.fretboard.setOctaveHighlight(null, false);
         
         const questions = [
-            { chord: 'Gm7 (シェル・ボイシング)', correctMidis: [43, 46, 53] },
-            { chord: 'C7 (シェル・ボイシング)', correctMidis: [48, 52, 58] },
-            { chord: 'F7 (シェル・ボイシング)', correctMidis: [41, 45, 51] }
+            { chord: 'Gm7 (シェル・ボイシング)', correctMidis: [43, 46, 53], hint: 'G(ソ)・B♭(シ♭)・F(ファ)' },
+            { chord: 'C7 (シェル・ボイシング)', correctMidis: [48, 52, 58], hint: 'C(ド)・E(ミ)・B♭(シ♭)' },
+            { chord: 'F7 (シェル・ボイシング)', correctMidis: [41, 45, 51], hint: 'F(ファ)・A(ラ)・E♭(ミ♭)' }
         ];
         this.gameState = {
             activeGame: 'builder',
@@ -2652,7 +3150,11 @@ class SilentRhythmApp {
                         指板上で <strong style="color: var(--accent-amber); font-size: 1.3rem;">${q.chord}</strong> のフォームを組み立ててください！
                     </div>
                     <p style="font-size: 0.85rem; color: var(--text-muted); text-align: center;">
-                        必要な3音（ルート、3度、7度）を指板上でタップしてください。
+                        必要な3音（ルート、3度、7度）を指板上でタップしてください。<br>
+                        構成音: <strong style="color: var(--text-secondary);">${q.hint}</strong>（オクターブ・ポジションはどこでもOK）
+                    </p>
+                    <p style="font-size: 0.78rem; color: var(--text-muted); text-align: center; margin-top: 8px;">
+                        <i class="fa-solid fa-lightbulb" style="color: var(--accent-amber);"></i> ヒント: 右上の「指板全音表示: ON」にすると全フレットの音名が見えます。
                     </p>
                     <div id="builder-count" style="font-size: 0.95rem; color: var(--accent-amber); font-weight: 800; margin-top: 15px; text-align: center;">
                         選択中: 0 / 3 音
@@ -2691,7 +3193,11 @@ class SilentRhythmApp {
         if (countText) countText.textContent = `選択中: ${this.gameState.selectedMidis.size} / 3 音`;
 
         if (this.gameState.selectedMidis.size === 3) {
-            const allCorrect = q.correctMidis.every(midiVal => this.gameState.selectedMidis.has(midiVal));
+            // ピッチクラス（オクターブ不問）で判定: 構成音の理解を問うのが目的のため
+            const requiredPcs = q.correctMidis.map(m => m % 12);
+            const selectedPcs = Array.from(this.gameState.selectedMidis).map(m => m % 12);
+            const allCorrect = requiredPcs.every(pc => selectedPcs.includes(pc))
+                && selectedPcs.every(pc => requiredPcs.includes(pc));
             setTimeout(() => { this.judgeBuilderAnswer(allCorrect); }, 300);
         }
     }
@@ -2710,17 +3216,27 @@ class SilentRhythmApp {
             window.audioEngine.playIncorrectSfx();
             this.gameState.lives--;
             panel.classList.add('incorrect-pulse');
-            
+
             // 指板全体を揺らすシェイクエフェクト
             if (window.gsap) {
                 window.gsap.fromTo('#fretboard-section', { x: -6 }, { x: 6, duration: 0.05, repeat: 5, yoyo: true, ease: "sine.inOut", onComplete: () => { window.gsap.set('#fretboard-section', { x: 0 }); } });
             }
-            
+
             setTimeout(() => panel.classList.remove('incorrect-pulse'), 400);
+
+            // 間違えたまま次に進ませず、正解のお手本ポジションを見せて学べるようにする
+            this.fretboard.clearMarkers();
+            this.fretboard.addMarker(q.correctMidis[0], 'root');
+            this.fretboard.addMarker(q.correctMidis[1], '3rd');
+            this.fretboard.addMarker(q.correctMidis[2], '7th');
+            this.fretboard.renderMarkers();
+            const countText = document.getElementById('builder-count');
+            if (countText) countText.innerHTML = '<i class="fa-solid fa-circle-info"></i> 正解はこの3音！ 色の意味: 赤=ルート / 緑=3度 / 青=7度';
+            window.audioEngine.playChord(q.correctMidis, 1.0, 0.25);
         }
 
         this.gameState.currentQuestionIndex++;
-        setTimeout(() => { this.nextBuilderQuestion(); }, 800);
+        setTimeout(() => { this.nextBuilderQuestion(); }, isCorrect ? 800 : 2600);
     }
 
     endBuilderGame() {
@@ -2766,6 +3282,289 @@ class SilentRhythmApp {
     }
 
     /* ゴールド紙吹雪（Confetti）エフェクトの実行 */
+    /* ====================================================
+       【ゲーム】 Swing Tap (2・4拍タイミングゲーム / Step 1)
+       メトロノームに合わせて2拍目・4拍目をタップし、
+       ジャズの「裏拍のタイム感」を体で覚えるトレーニング。
+       ==================================================== */
+    startSwingTapGame() {
+        this.cleanupActiveGame();
+        window.audioEngine.stopBackingTrack();
+        this.fretboard.clearMarkers();
+
+        const COUNT_IN_BARS = 2;  // 最初の2小節は判定なしの練習
+        const PLAY_BARS = 16;     // 本番16小節 (2・4拍 × 16 = 32ターゲット)
+
+        this.gameState = {
+            activeGame: 'swingtap',
+            countInBeats: COUNT_IN_BARS * 4,
+            totalBeats: (COUNT_IN_BARS + PLAY_BARS) * 4,
+            totalTargets: PLAY_BARS * 2,
+            perfect: 0,
+            good: 0,
+            miss: 0,
+            combo: 0,
+            maxCombo: 0,
+            beatCount: 0,        // 鳴った拍の通し番号 (1-based)
+            lastTickTime: 0,     // 直近の拍が鳴った時刻 (performance.now)
+            lastBeatIndex: 0,
+            judgedBeats: new Set() // 判定済みターゲット拍の絶対番号 (0-based)
+        };
+
+        this.renderSwingTapUI();
+
+        // スペースキーでもタップできるように
+        this.swingTapKeyHandler = (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                this.handleSwingTap();
+            }
+        };
+        document.addEventListener('keydown', this.swingTapKeyHandler);
+
+        const metronomeProgression = [
+            { chord: 'SWING', rootMidi: 36, notesMidi: [], beats: 4 }
+        ];
+        window.audioEngine.pianoEnabled = false;
+        window.audioEngine.startBackingTrack(metronomeProgression, (tick) => this.onSwingTapTick(tick));
+    }
+
+    onSwingTapTick(tick) {
+        const gs = this.gameState;
+        if (!gs || gs.activeGame !== 'swingtap') return;
+
+        gs.beatCount++;
+        gs.lastTickTime = performance.now();
+        gs.lastBeatIndex = tick.beatIndex;
+
+        const absBeat = gs.beatCount - 1; // 0-based 絶対拍番号
+
+        // 1拍前のターゲット(2・4拍目)がタップされないまま過ぎたらMISS確定
+        const prevAbs = absBeat - 1;
+        if (prevAbs >= gs.countInBeats && (prevAbs % 4 === 1 || prevAbs % 4 === 3) && !gs.judgedBeats.has(prevAbs)) {
+            gs.judgedBeats.add(prevAbs);
+            gs.miss++;
+            gs.combo = 0;
+            this.showSwingTapJudgement('MISS…', '#f87171');
+            this.updateSwingTapStats();
+        }
+
+        // 規定の小節数を叩き終えたら終了 (最後のターゲットの判定締切を待つため+1拍)
+        if (absBeat >= gs.totalBeats) {
+            this.endSwingTapGame();
+            return;
+        }
+
+        // ビートインジケーター更新
+        const dots = document.querySelectorAll('.swingtap-dot');
+        dots.forEach((dot, idx) => {
+            dot.classList.toggle('active', idx === tick.beatIndex);
+        });
+
+        const phaseEl = document.getElementById('swingtap-phase');
+        if (phaseEl) {
+            if (absBeat < gs.countInBeats) {
+                phaseEl.textContent = `カウントイン中… リズムを感じて (${Math.floor(absBeat / 4) + 1} / 2小節)`;
+            } else {
+                const playBar = Math.floor((absBeat - gs.countInBeats) / 4) + 1;
+                phaseEl.textContent = `本番中！ ${playBar} / ${(gs.totalBeats - gs.countInBeats) / 4} 小節`;
+            }
+        }
+    }
+
+    handleSwingTap() {
+        const gs = this.gameState;
+        if (!gs || gs.activeGame !== 'swingtap' || !gs.lastTickTime) return;
+
+        const spbMs = (60.0 / window.audioEngine.bpm) * 1000;
+        const beatsSinceTick = (performance.now() - gs.lastTickTime) / spbMs;
+        const absBeatNow = (gs.beatCount - 1) + beatsSinceTick; // 現在位置 (絶対拍・小数)
+
+        // 最寄りのターゲット拍 (絶対拍番号 % 4 が 1 または 3) を探す
+        let best = null;
+        [1, 3].forEach(t => {
+            const base = Math.floor((absBeatNow - t) / 4) * 4 + t;
+            [base, base + 4].forEach(cand => {
+                const d = Math.abs(absBeatNow - cand);
+                if (!best || d < best.d) best = { d, cand };
+            });
+        });
+        if (!best) return;
+
+        const deltaMs = best.d * spbMs;
+        const isCountIn = best.cand < gs.countInBeats;
+
+        if (gs.judgedBeats.has(best.cand)) return; // 同じ拍への2度タップは無視
+
+        if (deltaMs <= 90) {
+            if (!isCountIn) {
+                gs.judgedBeats.add(best.cand);
+                gs.perfect++;
+                gs.combo++;
+                gs.maxCombo = Math.max(gs.maxCombo, gs.combo);
+            }
+            this.showSwingTapJudgement(isCountIn ? 'PERFECT! (練習中)' : 'PERFECT!', 'var(--accent-amber)');
+        } else if (deltaMs <= 180) {
+            if (!isCountIn) {
+                gs.judgedBeats.add(best.cand);
+                gs.good++;
+                gs.combo++;
+                gs.maxCombo = Math.max(gs.maxCombo, gs.combo);
+            }
+            this.showSwingTapJudgement(isCountIn ? 'GOOD (練習中)' : 'GOOD', '#34d399');
+        } else {
+            // 大きく外れたタップ (1・3拍目を叩いている等)。ターゲットは未消化のまま残す
+            if (!isCountIn) {
+                gs.combo = 0;
+            }
+            this.showSwingTapJudgement('そこは裏拍じゃない！ 2・4拍目を狙おう', '#f87171');
+        }
+        this.updateSwingTapStats();
+    }
+
+    showSwingTapJudgement(text, color) {
+        const el = document.getElementById('swingtap-judgement');
+        if (!el) return;
+        el.textContent = text;
+        el.style.color = color;
+        if (window.gsap) {
+            window.gsap.fromTo(el, { scale: 1.25, opacity: 1 }, { scale: 1, duration: 0.3, ease: 'back.out(2)' });
+        }
+    }
+
+    updateSwingTapStats() {
+        const gs = this.gameState;
+        if (!gs) return;
+        const statsEl = document.getElementById('swingtap-stats');
+        if (statsEl) {
+            statsEl.innerHTML = `
+                <span style="color: var(--accent-amber);">PERFECT: ${gs.perfect}</span>
+                <span style="color: #34d399;">GOOD: ${gs.good}</span>
+                <span style="color: #f87171;">MISS: ${gs.miss}</span>
+                <span style="color: var(--text-secondary);">COMBO: ${gs.combo}</span>
+            `;
+        }
+    }
+
+    renderSwingTapUI() {
+        const panel = document.getElementById('lesson-panel');
+        if (!panel) return;
+
+        panel.innerHTML = `
+            <div class="game-play-area">
+                <div class="game-hud">
+                    <span class="hud-item"><i class="fa-solid fa-drum"></i> Swing Tap | <span id="swingtap-phase">カウントイン待機中…</span></span>
+                    <button class="secondary-btn" id="btn-quit-swingtap" style="padding: 4px 10px; font-size: 0.75rem; margin: 0; background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.25);">
+                        <i class="fa-solid fa-xmark"></i> 中断
+                    </button>
+                </div>
+                <div class="game-quiz-box" style="padding: 20px; text-align: center;">
+                    <div class="quiz-instruction" style="margin-bottom: 15px;">
+                        ハイハットに合わせて <strong style="color: var(--accent-amber);">2拍目・4拍目</strong> でタップ！<br>
+                        <span style="font-size: 0.8rem; color: var(--text-muted);">下の青いパッドをタップ、または <kbd style="background: rgba(255,255,255,0.08); border: 1px solid var(--border-glass); border-radius: 4px; padding: 1px 8px;">スペースキー</kbd> でもOK</span>
+                    </div>
+                    <div style="display: flex; justify-content: center; gap: 18px; margin-bottom: 18px;">
+                        <div class="swingtap-dot">1</div>
+                        <div class="swingtap-dot target">2</div>
+                        <div class="swingtap-dot">3</div>
+                        <div class="swingtap-dot target">4</div>
+                    </div>
+                    <div id="swingtap-judgement" style="font-family: var(--font-heading); font-weight: 800; font-size: 1.5rem; min-height: 1.6em; color: var(--text-secondary);">READY…</div>
+                    <button id="swingtap-pad">
+                        <i class="fa-solid fa-hand-pointer"></i> TAP!
+                    </button>
+                    <div id="swingtap-stats" style="display: flex; justify-content: center; gap: 20px; margin-top: 15px; font-size: 0.85rem; font-weight: 700;">
+                        <span style="color: var(--accent-amber);">PERFECT: 0</span>
+                        <span style="color: #34d399;">GOOD: 0</span>
+                        <span style="color: #f87171;">MISS: 0</span>
+                        <span style="color: var(--text-secondary);">COMBO: 0</span>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        const pad = document.getElementById('swingtap-pad');
+        if (pad) {
+            // clickより低遅延なpointerdownで判定する
+            pad.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                this.handleSwingTap();
+            });
+        }
+
+        const btnQuit = document.getElementById('btn-quit-swingtap');
+        if (btnQuit) {
+            btnQuit.addEventListener('click', () => {
+                window.audioEngine.stopBackingTrack();
+                this.cleanupActiveGame();
+                this.switchStep('1');
+            });
+        }
+    }
+
+    endSwingTapGame() {
+        const gs = this.gameState;
+        window.audioEngine.stopBackingTrack();
+
+        const hit = gs.perfect + gs.good;
+        const accuracy = Math.round((hit / gs.totalTargets) * 100);
+        const finalScore = gs.perfect * 5 + gs.good * 2;
+        const passed = accuracy >= 70;
+        const { maxCombo } = gs;
+
+        this.addScore(finalScore);
+        if (passed) this.unlockStep('2');
+        this.cleanupActiveGame();
+
+        if (passed) this.triggerConfetti();
+
+        const panel = document.getElementById('lesson-panel');
+        panel.innerHTML = `
+            <div class="game-result-card">
+                <h3 class="result-title">${passed ? '<i class="fa-solid fa-circle-check" style="color: var(--accent-emerald);"></i> SWING MASTER!' : '<i class="fa-solid fa-triangle-exclamation" style="color: var(--color-root);"></i> TRY AGAIN!'}</h3>
+                <p style="margin-bottom: 20px; font-size: 0.95rem; font-weight: 500;">
+                    2・4拍タイム感テスト結果
+                </p>
+                <div class="result-stats">
+                    <div class="result-stat">
+                        <span class="label">命中率</span>
+                        <span class="value">${accuracy}%</span>
+                    </div>
+                    <div class="result-stat">
+                        <span class="label">PERFECT / GOOD / MISS</span>
+                        <span class="value">${gs.perfect} / ${gs.good} / ${gs.miss}</span>
+                    </div>
+                    <div class="result-stat">
+                        <span class="label">最大コンボ</span>
+                        <span class="value">${maxCombo}</span>
+                    </div>
+                    <div class="result-stat">
+                        <span class="label">獲得スコア</span>
+                        <span class="value">${finalScore} pts</span>
+                    </div>
+                </div>
+
+                <p style="margin-bottom: 25px; font-size: 0.85rem; color: var(--text-muted); max-width: 460px; line-height: 1.5;">
+                    ${passed
+                        ? '合格ライン(命中率70%)をクリア！この「2・4拍を体で感じる力」こそスウィングの核です。Step 2（コード伴奏）に進みましょう。'
+                        : '惜しい！命中率70%以上で合格です。コツは「1・3拍目に小さくうなずいて、2・4拍目で叩く」こと。テンポを下げて再挑戦もアリです。'}
+                </p>
+
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <button class="action-btn" id="btn-restart-swingtap"><i class="fa-solid fa-rotate-left"></i> もう一度プレイ</button>
+                    <button class="secondary-btn" id="btn-exit-swingtap"><i class="fa-solid fa-xmark"></i> 解説に戻る</button>
+                    ${passed ? `<button class="action-btn" id="btn-go-to-2" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);"><i class="fa-solid fa-chevron-right"></i> Step 2 へ進む</button>` : ''}
+                </div>
+            </div>
+        `;
+
+        document.getElementById('btn-restart-swingtap').addEventListener('click', () => this.startSwingTapGame());
+        document.getElementById('btn-exit-swingtap').addEventListener('click', () => this.switchStep('1'));
+        if (passed) {
+            document.getElementById('btn-go-to-2').addEventListener('click', () => this.switchStep('2'));
+        }
+    }
+
     triggerConfetti() {
         const colors = ['#fbbf24', '#f59e0b', '#d97706', '#60a5fa', '#34d399', '#f87171'];
         const container = document.body;
@@ -2815,6 +3614,13 @@ class SilentRhythmApp {
             clearInterval(this.gameInterval);
             this.gameInterval = null;
         }
+        // Swing Tapゲームのスペースキーハンドラを解除
+        if (this.swingTapKeyHandler) {
+            document.removeEventListener('keydown', this.swingTapKeyHandler);
+            this.swingTapKeyHandler = null;
+        }
+        // Step 3 アドリブ着地判定のステートを破棄
+        this.adlibState = null;
         if (this.gameState && this.gameState.timerId) {
             clearTimeout(this.gameState.timerId);
             this.gameState.timerId = null;
@@ -3136,6 +3942,622 @@ class SilentRhythmApp {
             window.gsap.killTweensOf(bar);
             window.gsap.fromTo(bar, { width: '0%' }, { width: '100%', duration: duration / 1000, ease: 'none' });
         }
+    }
+
+    /* ====================================================
+       【19 Lesson リニューアル・プレミアムヘルパー群】
+       ==================================================== */
+    syncInteractiveStageForLesson(lessonId) {
+        if (!this.fretboard || !this.staff) return;
+        this.fretboard.clearMarkers();
+        
+        switch (lessonId) {
+            case 1:
+                this.fretboard.addMarker(60, 'root');
+                this.fretboard.renderMarkers();
+                this.staff.setNoteByMidi(60, true);
+                break;
+            case 2:
+                break;
+            case 3:
+                this.updateChordFormVisualization(false);
+                break;
+            case 4:
+                this.fretboard.addMarker(48, 'root');
+                this.fretboard.addMarker(55, 'scale');
+                this.fretboard.addMarker(59, 'scale');
+                this.fretboard.addMarker(64, 'scale');
+                this.fretboard.renderMarkers();
+                this.staff.setNoteByMidi(60, true);
+                break;
+            case 5:
+                break;
+            case 6:
+                break;
+            case 7:
+                this.highlightScaleOnFretboard([55, 57, 59, 60, 62, 64, 66, 67, 69, 71, 72, 74, 76, 78, 79]);
+                break;
+            case 8:
+                this.highlightScaleOnFretboard([55, 56, 58, 59, 61, 63, 65, 67, 68, 70, 71, 73, 75, 77, 79]);
+                break;
+            case 9:
+                this.highlightScaleOnFretboard([55, 58, 62, 65, 67, 70, 74, 77, 79]);
+                break;
+            case 10:
+                this.highlightScaleOnFretboard([55, 58, 60, 62, 65, 67, 70, 72, 74, 77, 79]);
+                break;
+            case 11:
+                break;
+            case 12:
+            case 13:
+                this.showCodeVoicingGuide('Cm7', 48, 0, 0);
+                break;
+            case 14:
+                break;
+            case 15:
+                this.showTensionGrip('g79');
+                break;
+            case 16:
+                break;
+            case 17:
+                break;
+            case 18:
+                break;
+            case 19:
+                break;
+        }
+    }
+
+    setupDiatonicLessonEvents() {
+        const container = document.getElementById('diatonic-chords-list');
+        if (!container) return;
+
+        const diatonicChords = [
+            { name: 'Cmaj7', roman: 'Imaj7', notes: [60, 64, 67, 71] },
+            { name: 'Dm7', roman: 'IIm7', notes: [62, 65, 69, 72] },
+            { name: 'Em7', roman: 'IIIm7', notes: [64, 67, 71, 74] },
+            { name: 'Fmaj7', roman: 'IVmaj7', notes: [53, 57, 60, 64] },
+            { name: 'G7', roman: 'V7', notes: [55, 59, 62, 65] },
+            { name: 'Am7', roman: 'VIm7', notes: [57, 60, 64, 67] },
+            { name: 'Bm7(b5)', roman: 'VIIm7(b5)', notes: [59, 62, 65, 69] }
+        ];
+
+        container.innerHTML = diatonicChords.map((chord, idx) => `
+            <button class="action-btn diatonic-chord-btn" data-idx="${idx}" style="padding: 8px 4px; font-size: 0.72rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;">
+                <span style="font-weight: 800; color: #fff;">${chord.name}</span>
+                <span style="font-size: 0.6rem; color: var(--text-muted); font-family: monospace;">${chord.roman}</span>
+            </button>
+        `).join('');
+
+        container.querySelectorAll('.diatonic-chord-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const idx = parseInt(btn.getAttribute('data-idx'), 10);
+                this.previewDiatonicChord(idx, diatonicChords);
+            });
+        });
+    }
+
+    previewDiatonicChord(idx, diatonicChords) {
+        const chord = diatonicChords[idx];
+        if (!chord) return;
+
+        this.fretboard.clearMarkers();
+        chord.notes.forEach((midi, i) => {
+            const type = (i === 0) ? 'root' : 'scale';
+            this.fretboard.addMarker(midi, type);
+        });
+        this.fretboard.renderMarkers();
+
+        if (this.staff) {
+            this.staff.setNoteByMidi(chord.notes[0], true);
+        }
+
+        window.audioEngine.playChord(chord.notes, 1.0, 0.4);
+
+        const btn = document.querySelector(`.diatonic-chord-btn[data-idx="${idx}"]`);
+        if (btn) {
+            const rect = btn.getBoundingClientRect();
+            this.triggerNeonFeedback(`Nice: ${chord.name}!`, rect.left + rect.width / 2, rect.top);
+        }
+    }
+
+    highlightScaleOnFretboard(midiNotes) {
+        if (!this.fretboard) return;
+        this.fretboard.clearMarkers();
+        midiNotes.forEach(midi => {
+            const type = (midi % 12 === 7) ? 'root' : 'scale';
+            this.fretboard.addMarker(midi, type);
+        });
+        this.fretboard.renderMarkers();
+    }
+
+    playResolveDemo() {
+        if (!this.fretboard) return;
+        this.fretboard.clearMarkers();
+
+        const g7altNotes = [43, 53, 56, 59, 63];
+        g7altNotes.forEach(n => this.fretboard.addMarker(n, 'root'));
+        this.fretboard.renderMarkers();
+        if (this.staff) this.staff.setNoteByMidi(43, true);
+        window.audioEngine.playChord(g7altNotes, 1.0, 0.8);
+
+        const btn = document.getElementById('btn-play-resolve-demo');
+        if (btn) {
+            const rect = btn.getBoundingClientRect();
+            this.triggerNeonFeedback('Tension G7alt...', rect.left + rect.width / 2, rect.top);
+        }
+
+        setTimeout(() => {
+            if (this.currentLesson !== 8) return;
+            this.fretboard.clearMarkers();
+            const cmaj7Notes = [48, 52, 55, 59, 64];
+            cmaj7Notes.forEach(n => this.fretboard.addMarker(n, 'scale'));
+            this.fretboard.renderMarkers();
+            if (this.staff) this.staff.setNoteByMidi(48, true);
+            window.audioEngine.playChord(cmaj7Notes, 1.2, 1.0);
+
+            if (btn) {
+                const rect = btn.getBoundingClientRect();
+                this.triggerNeonFeedback('Resolve to Cmaj7!', rect.left + rect.width / 2, rect.top);
+            }
+        }, 1200);
+    }
+
+    showModeOnFretboard(mode) {
+        if (!this.fretboard) return;
+
+        this.fretboard.clearMarkers();
+        const dorianPitchClasses = [7, 9, 10, 0, 2, 4, 5];
+        const mixoPitchClasses = [7, 9, 11, 0, 2, 4, 5];
+        const pitchClasses = mode === 'dorian' ? dorianPitchClasses : mixoPitchClasses;
+
+        this.fretboard.openStrings.forEach(openMidi => {
+            for (let fret = 0; fret <= this.fretboard.numFrets; fret++) {
+                const midi = openMidi + fret;
+                const pc = midi % 12;
+                if (pitchClasses.includes(pc)) {
+                    const type = (pc === 7) ? 'root' : 'scale';
+                    this.fretboard.addMarker(midi, type);
+                }
+            }
+        });
+        this.fretboard.renderMarkers();
+
+        const rootMidi = 55;
+        const intervals = mode === 'dorian' ? [0, 2, 3, 5, 7] : [0, 2, 4, 5, 7];
+        intervals.forEach((interval, i) => {
+            setTimeout(() => {
+                if (this.currentLesson !== 11) return;
+                window.audioEngine.playNote(rootMidi + interval, 0.4, 0.3);
+            }, i * 150);
+        });
+
+        const btnId = mode === 'dorian' ? 'btn-mode-dorian' : 'btn-mode-mixo';
+        const btn = document.getElementById(btnId);
+        if (btn) {
+            const rect = btn.getBoundingClientRect();
+            const label = mode === 'dorian' ? 'Dorian (哀愁)' : 'Mixolydian (陽気)';
+            this.triggerNeonFeedback(label, rect.left + rect.width / 2, rect.top);
+        }
+    }
+
+    previewAnalyseChord(idx) {
+        const prog = this.autumnLeavesProgression[idx];
+        if (!prog) return;
+
+        this.fretboard.clearMarkers();
+        prog.notesMidi.forEach((midi, i) => {
+            const type = (i === 0) ? 'root' : 'scale';
+            this.fretboard.addMarker(midi, type);
+        });
+        this.fretboard.renderMarkers();
+
+        if (this.staff) {
+            this.staff.setNoteByMidi(prog.notesMidi[0], true);
+        }
+
+        window.audioEngine.playChord(prog.notesMidi, 1.0, 0.5);
+
+        const btn = document.querySelector(`.analyse-chord-btn[data-chord-idx="${idx}"]`);
+        if (btn) {
+            const rect = btn.getBoundingClientRect();
+            this.triggerNeonFeedback(`${prog.chord}!`, rect.left + rect.width / 2, rect.top);
+        }
+    }
+
+    showTensionGrip(grip) {
+        if (!this.fretboard) return;
+
+        const grips = {
+            'g79': { name: 'G7(9)', notes: [43, 53, 57, 59] },
+            'g713': { name: 'G7(13)', notes: [43, 53, 59, 64] },
+            'cmaj9': { name: 'Cmaj9', notes: [48, 52, 59, 62] }
+        };
+
+        const item = grips[grip];
+        if (!item) return;
+
+        this.fretboard.clearMarkers();
+        item.notes.forEach((midi, i) => {
+            const type = (i === 0) ? 'root' : 'scale';
+            this.fretboard.addMarker(midi, type);
+        });
+        this.fretboard.renderMarkers();
+
+        if (this.staff) {
+            this.staff.setNoteByMidi(item.notes[0], true);
+        }
+
+        window.audioEngine.playChord(item.notes, 1.0, 0.4);
+
+        const btn = document.querySelector(`.tension-select-btn[data-grip="${grip}"]`);
+        if (btn) {
+            const rect = btn.getBoundingClientRect();
+            this.triggerNeonFeedback(`${item.name}`, rect.left + rect.width / 2, rect.top);
+        }
+    }
+
+    toggleSandboxBacking() {
+        const btn = document.getElementById('btn-toggle-sandbox-backing');
+        if (!btn) return;
+
+        if (window.audioEngine.isPlaying) {
+            window.audioEngine.stopBackingTrack();
+            btn.textContent = '伴奏を再生';
+            this.fretboard.clearMarkers();
+            this.highlightScaleOnFretboard([55, 57, 59, 60, 62, 64, 66, 67, 69, 71, 72, 74, 76, 78, 79]);
+        } else {
+            const sandboxProgression = [
+                { chord: 'Gmaj7', rootMidi: 43, notesMidi: [55, 59, 62, 66], beats: 4 },
+                { chord: 'Am7', rootMidi: 45, notesMidi: [57, 60, 64, 67], beats: 4 },
+                { chord: 'Bm7', rootMidi: 47, notesMidi: [59, 62, 66, 69], beats: 4 },
+                { chord: 'Am7', rootMidi: 45, notesMidi: [57, 60, 64, 67], beats: 4 }
+            ];
+
+            btn.textContent = '停止';
+            window.audioEngine.pianoEnabled = true;
+
+            this.highlightScaleOnFretboard([55, 57, 59, 60, 62, 64, 66, 67, 69, 71, 72, 74, 76, 78, 79]);
+
+            window.audioEngine.startBackingTrack(sandboxProgression, (tick) => {
+                const readout = document.getElementById('staff-readout');
+                if (readout) {
+                    readout.textContent = `伴奏進行中: ${tick.chord} (拍: ${tick.beatIndex + 1})`;
+                }
+            });
+        }
+    }
+
+    playLickDemo() {
+        const btn = document.getElementById('btn-play-lick');
+        if (btn) {
+            btn.setAttribute('disabled', 'true');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 再生中...';
+        }
+
+        const lick = [
+            { midi: 67, delay: 0 },
+            { midi: 70, delay: 250 },
+            { midi: 72, delay: 500 },
+            { midi: 74, delay: 750 },
+            { midi: 75, delay: 1000 },
+            { midi: 72, delay: 1300 },
+            { midi: 69, delay: 1550 },
+            { midi: 65, delay: 1800 },
+            { midi: 62, delay: 2150 }
+        ];
+
+        lick.forEach((note) => {
+            setTimeout(() => {
+                if (this.currentLesson !== 14) return;
+                window.audioEngine.playNote(note.midi, 0.5, 0.35);
+                if (this.staff) this.staff.setNoteByMidi(note.midi, true);
+                if (this.fretboard) {
+                    this.fretboard.clearMarkers();
+                    this.fretboard.addMarker(note.midi, 'root');
+                    this.fretboard.renderMarkers();
+                }
+            }, note.delay);
+        });
+
+        setTimeout(() => {
+            if (btn) {
+                btn.removeAttribute('disabled');
+                btn.innerHTML = '<i class="fa-solid fa-play"></i> 定番リックを再生＆ガイド表示';
+            }
+        }, 2600);
+    }
+
+    playIntroDemo() {
+        const btn = document.getElementById('btn-play-intro');
+        if (btn) {
+            btn.setAttribute('disabled', 'true');
+            btn.textContent = '再生中...';
+        }
+
+        const chords = [
+            { name: 'Bm7(b5)', notes: [47, 53, 56, 57], delay: 0 },
+            { name: 'E7alt', notes: [40, 50, 53, 56], delay: 800 },
+            { name: 'Am7', notes: [45, 52, 55, 57], delay: 1600 },
+            { name: 'D7alt', notes: [50, 54, 60, 63], delay: 2400 }
+        ];
+
+        chords.forEach((c) => {
+            setTimeout(() => {
+                if (this.currentLesson !== 17) return;
+                this.fretboard.clearMarkers();
+                c.notes.forEach((n, i) => this.fretboard.addMarker(n, i === 0 ? 'root' : 'scale'));
+                this.fretboard.renderMarkers();
+                if (this.staff) this.staff.setNoteByMidi(c.notes[0], true);
+                window.audioEngine.playChord(c.notes, 1.0, 0.7);
+
+                const container = document.getElementById('btn-play-intro');
+                if (container) {
+                    const rect = container.getBoundingClientRect();
+                    this.triggerNeonFeedback(c.name, rect.left + rect.width / 2, rect.top);
+                }
+            }, c.delay);
+        });
+
+        setTimeout(() => {
+            if (btn) {
+                btn.removeAttribute('disabled');
+                btn.innerHTML = '<i class="fa-solid fa-headphones"></i> 逆循環イントロ進行';
+            }
+        }, 3400);
+    }
+
+    playEndingDemo() {
+        const btn = document.getElementById('btn-play-ending');
+        if (btn) {
+            btn.setAttribute('disabled', 'true');
+            btn.textContent = '再生中...';
+        }
+
+        const chords = [
+            { name: 'Cm7', notes: [48, 55, 58, 63], delay: 0 },
+            { name: 'F7', notes: [41, 53, 57, 60], delay: 800 },
+            { name: 'Bbmaj7', notes: [46, 53, 57, 58], delay: 1600 },
+            { name: 'Bmaj7', notes: [47, 54, 58, 59], delay: 2400 },
+            { name: 'Cmaj7', notes: [48, 55, 59, 64], delay: 3000 }
+        ];
+
+        chords.forEach((c) => {
+            setTimeout(() => {
+                if (this.currentLesson !== 17) return;
+                this.fretboard.clearMarkers();
+                c.notes.forEach((n, i) => this.fretboard.addMarker(n, i === 0 ? 'root' : 'scale'));
+                this.fretboard.renderMarkers();
+                if (this.staff) this.staff.setNoteByMidi(c.notes[0], true);
+                window.audioEngine.playChord(c.notes, 1.0, 0.85);
+
+                const container = document.getElementById('btn-play-ending');
+                if (container) {
+                    const rect = container.getBoundingClientRect();
+                    this.triggerNeonFeedback(c.name, rect.left + rect.width / 2, rect.top);
+                }
+            }, c.delay);
+        });
+
+        setTimeout(() => {
+            if (btn) {
+                btn.removeAttribute('disabled');
+                btn.innerHTML = '<i class="fa-solid fa-headphones"></i>  ジャズ定番エンディング';
+            }
+        }, 4200);
+    }
+
+    renderMannerQuiz() {
+        const area = document.getElementById('manner-quiz-area');
+        if (!area) return;
+
+        this.quizState = {
+            currentQuestion: 0,
+            score: 0,
+            questions: [
+                {
+                    q: 'セッションで他のフロント楽器がソロを弾いている間、ギタリストの伴奏（コンピング）はどうあるべき？',
+                    choices: [
+                        '自分の技術をアピールするため、フロント奏者より目立つ大きな音量で伴奏する',
+                        'ソリストのメロディをよく聴き、音量を抑えてスウィングのノリをサポートする',
+                        '伴奏は退屈なので、適当にスマホをいじりながら弾く'
+                    ],
+                    correct: 1,
+                    explanation: 'ジャズは会話です！ソリストの語り口をよく聴き、邪魔しないように音量と音数をコントロールするのが極上バッカーの心得です。'
+                },
+                {
+                    q: '他のメンバーが熱いアドリブソロを弾き終えた瞬間の、粋なマナーはどれ？',
+                    choices: [
+                        '自分の次のソロの準備に集中し、特に反応はしない',
+                        '「今のフレーズはダサいね」とダメ出しする',
+                        '小さく拍手（拍手できない時は声やうなずき）で「Yeah!」と讃える'
+                    ],
+                    correct: 2,
+                    explanation: '素晴らしいソロにはセッション中でも声や拍手で反応するのがジャズクラブの粋な文化。バンド全体のエネルギーが高まります！'
+                },
+                {
+                    q: 'アンプのEQ（音質）設定で、ベース奏者を邪魔しないためのジャズギターの基本設定は？',
+                    choices: [
+                        'ギター単体で気持ち良い太い低域を出すため、Bass（低音）ノブを最大にする',
+                        'ベースの帯域と衝突するのを防ぐため、Bassは少し絞り、ミドルを豊かにする',
+                        'アンプの設定は一切触らず、工場の初期状態のまま使う'
+                    ],
+                    correct: 1,
+                    explanation: 'ギターの低域が出すぎていると、ベースの音階がぼやけてしまいます。低音を少しカットすることでアンサンブルがすっきり抜けて聞こえます。'
+                }
+            ]
+        };
+
+        this.showMannerQuestion();
+    }
+
+    showMannerQuestion() {
+        const area = document.getElementById('manner-quiz-area');
+        if (!area) return;
+
+        const state = this.quizState;
+        if (state.currentQuestion >= state.questions.length) {
+            const passed = state.score >= 2;
+            const points = state.score * 30;
+            this.addScore(points);
+            if (passed) this.triggerConfetti();
+
+            area.innerHTML = `
+                <div style="text-align: center; padding: 10px 0;">
+                    <h4 style="font-family: var(--font-heading); font-size: 1.3rem; color: var(--accent-amber); margin-bottom: 8px;">
+                        ${passed ? '🎉 クイズ合格！' : '☕ もう一度確認しよう'}
+                    </h4>
+                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 12px;">
+                        あなたの正解数: <strong>${state.score} / ${state.questions.length} 問</strong><br>
+                        スコア <strong>+${points} pts</strong> を獲得しました！
+                    </p>
+                    <button class="action-btn" onclick="window.app.renderMannerQuiz()" style="font-size: 0.75rem; padding: 6px 12px; margin-right: 8px;">もう一度挑戦</button>
+                    <button class="secondary-btn" onclick="window.app.switchStep('6')" style="font-size: 0.75rem; padding: 6px 12px;">レッスン一覧へ</button>
+                </div>
+            `;
+            return;
+        }
+
+        const qData = state.questions[state.currentQuestion];
+        area.innerHTML = `
+            <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 4px;">
+                ジャム・セッション流儀クイズ (第 ${state.currentQuestion + 1} / ${state.questions.length} 問)
+            </div>
+            <h4 style="font-size: 0.85rem; color: #fff; font-weight: 700; margin-bottom: 12px; line-height: 1.4;">
+                ${qData.q}
+            </h4>
+            <div style="display: flex; flex-direction: column; gap: 8px;" id="manner-choices-container">
+                ${qData.choices.map((choice, idx) => `
+                    <button class="secondary-btn quiz-choice-btn" data-choice="${idx}" style="text-align: left; padding: 10px 14px; font-size: 0.75rem; justify-content: flex-start; width: 100%; border: 1px solid var(--border-glass); background: rgba(255,255,255,0.01); color: var(--text-secondary); transition: all 0.2s;">
+                        ${String.fromCharCode(65 + idx)}. ${choice}
+                    </button>
+                `).join('')}
+            </div>
+            <div id="quiz-explanation-box" style="margin-top: 12px; display: none; font-size: 0.75rem; padding: 10px; border-radius: 8px; line-height: 1.4;"></div>
+        `;
+
+        area.querySelectorAll('.quiz-choice-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const choice = parseInt(btn.getAttribute('data-choice'), 10);
+                this.answerMannerQuiz(choice);
+            });
+        });
+    }
+
+    answerMannerQuiz(choiceIndex) {
+        const state = this.quizState;
+        const qData = state.questions[state.currentQuestion];
+        const buttons = document.querySelectorAll('.quiz-choice-btn');
+        const expBox = document.getElementById('quiz-explanation-box');
+        
+        buttons.forEach(btn => btn.setAttribute('disabled', 'true'));
+        
+        const isCorrect = choiceIndex === qData.correct;
+        if (isCorrect) {
+            state.score++;
+            window.audioEngine.playCorrectSfx();
+            const chosenBtn = document.querySelector(`.quiz-choice-btn[data-choice="${choiceIndex}"]`);
+            if (chosenBtn) {
+                chosenBtn.style.borderColor = 'var(--accent-emerald)';
+                chosenBtn.style.background = 'rgba(16, 185, 129, 0.08)';
+                chosenBtn.style.color = '#34d399';
+                
+                const rect = chosenBtn.getBoundingClientRect();
+                this.triggerNeonFeedback('Swing & Correct!', rect.left + rect.width / 2, rect.top);
+            }
+        } else {
+            window.audioEngine.playIncorrectSfx();
+            const chosenBtn = document.querySelector(`.quiz-choice-btn[data-choice="${choiceIndex}"]`);
+            if (chosenBtn) {
+                chosenBtn.style.borderColor = 'var(--color-root)';
+                chosenBtn.style.background = 'rgba(239, 68, 68, 0.08)';
+                chosenBtn.style.color = '#f87171';
+            }
+            const correctBtn = document.querySelector(`.quiz-choice-btn[data-choice="${qData.correct}"]`);
+            if (correctBtn) {
+                correctBtn.style.borderColor = 'var(--accent-emerald)';
+                correctBtn.style.color = '#34d399';
+            }
+        }
+
+        if (expBox) {
+            expBox.style.display = 'block';
+            expBox.style.background = isCorrect ? 'rgba(16, 185, 129, 0.05)' : 'rgba(239, 68, 68, 0.05)';
+            expBox.style.border = isCorrect ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid rgba(239, 68, 68, 0.2)';
+            expBox.style.color = isCorrect ? '#34d399' : '#f87171';
+            expBox.innerHTML = `<strong>${isCorrect ? '🎯 正解！' : '❌ 不正解...'}</strong> ${qData.explanation}` +
+                `<button class="action-btn" id="btn-quiz-next" style="margin-top: 10px; display: block; font-size: 0.72rem; padding: 4px 10px;">` +
+                `${state.currentQuestion + 1 === state.questions.length ? '結果を見る' : '次の問題へ'} <i class="fa-solid fa-chevron-right"></i>` +
+                `</button>`;
+            
+            document.getElementById('btn-quiz-next').addEventListener('click', () => {
+                state.currentQuestion++;
+                this.showMannerQuestion();
+            });
+        }
+    }
+
+    getFretboardClientCoords(stringIndex, fret) {
+        if (!this.fretboard || !this.fretboard.svg) return { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+        const svgX = fret === 0 ? 22 : (this.fretboard.getFretX(fret - 1) + this.fretboard.getFretX(fret)) / 2;
+        const svgY = this.fretboard.getStringY(stringIndex);
+        const rect = this.fretboard.svg.getBoundingClientRect();
+        const clientX = rect.left + (svgX / 920) * rect.width;
+        const clientY = rect.top + (svgY / 180) * rect.height;
+        return { x: clientX, y: clientY };
+    }
+
+    triggerNeonFeedback(text, x, y) {
+        const fxLayer = document.getElementById('jazz-fx-layer');
+        if (!fxLayer) return;
+
+        const popup = document.createElement('div');
+        popup.className = 'jazz-feedback-popup';
+        popup.textContent = text;
+        popup.style.left = `${x}px`;
+        popup.style.top = `${y}px`;
+        fxLayer.appendChild(popup);
+
+        setTimeout(() => popup.remove(), 800);
+
+        for (let i = 0; i < 10; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'jazz-neon-particle';
+            particle.style.left = `${x}px`;
+            particle.style.top = `${y}px`;
+
+            const size = Math.random() * 5 + 3;
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+
+            const colors = ['#fbbf24', '#f59e0b', '#3b82f6', '#60a5fa', '#a78bfa', '#f472b6'];
+            particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            particle.style.boxShadow = `0 0 8px ${particle.style.backgroundColor}`;
+
+            const angle = Math.random() * Math.PI * 2;
+            const dist = Math.random() * 50 + 20;
+            const dx = Math.cos(angle) * dist;
+            const dy = Math.sin(angle) * dist;
+            particle.style.setProperty('--dx', `${dx}px`);
+            particle.style.setProperty('--dy', `${dy}px`);
+
+            fxLayer.appendChild(particle);
+            setTimeout(() => particle.remove(), 600);
+        }
+    }
+
+    triggerBandMemberSpeech(memberId, text) {
+        const bubble = document.getElementById(`bubble-${memberId}`);
+        if (!bubble) return;
+        bubble.textContent = text;
+        bubble.classList.add('show');
+        setTimeout(() => {
+            bubble.classList.remove('show');
+        }, 1200);
+    }
+
+    startSessionPlayer() {
+        this.toggleSessionPlayback();
     }
 }
 

@@ -5,6 +5,7 @@ class JazzAudioEngine {
         this.ctx = null;
         this.masterVolume = null;
         this.isPlaying = false;
+        this.volume = 0.3; // マスター音量 (0.0〜1.0)
         
         // 伴奏用パラメータ
         this.bpm = 110;
@@ -34,8 +35,16 @@ class JazzAudioEngine {
         
         // マスターボリュームノード
         this.masterVolume = this.ctx.createGain();
-        this.masterVolume.gain.setValueAtTime(0.3, this.ctx.currentTime);
+        this.masterVolume.gain.setValueAtTime(this.volume, this.ctx.currentTime);
         this.masterVolume.connect(this.ctx.destination);
+    }
+
+    // マスター音量の変更 (AudioContext未初期化でも値を保持し、init時に反映)
+    setMasterVolume(v) {
+        this.volume = Math.max(0, Math.min(1, v));
+        if (this.ctx && this.masterVolume) {
+            this.masterVolume.gain.setTargetAtTime(this.volume, this.ctx.currentTime, 0.02);
+        }
     }
 
     resume() {
@@ -194,9 +203,11 @@ class JazzAudioEngine {
         
         // 2. ウオーキングベース（4つ打ち）
         // 基本はルート音、4拍目は次のコードへのつなぎ音
+        // コードの品質（メジャー/マイナー/ハーフディミニッシュ）に合った度数を選ぶ
+        const intervals = this.getBassIntervals(chordData.quality);
         let baseMidi = scaleRoot;
-        if (beatIndex === 1) baseMidi += 4; // 3度
-        else if (beatIndex === 2) baseMidi += 7; // 5度
+        if (beatIndex === 1) baseMidi += intervals.third;
+        else if (beatIndex === 2) baseMidi += intervals.fifth;
         else if (beatIndex === 3) {
             // 次の小節のルートへのアプローチノート（半音上または下）
             const nextStep = (stepIndex + (this.currentBeat === chordData.beats - 1 ? 1 : 0)) % this.chordProgression.length;
@@ -226,6 +237,17 @@ class JazzAudioEngine {
                 });
             }
         }, Math.max(0, delayMs));
+    }
+
+    // コード品質ごとのベースライン用度数（半音数）
+    getBassIntervals(quality) {
+        switch (quality) {
+            case 'min7': return { third: 3, fifth: 7 };  // 短3度・完全5度
+            case 'm7b5': return { third: 3, fifth: 6 };  // 短3度・減5度
+            case 'maj7':
+            case 'dom7':
+            default: return { third: 4, fifth: 7 };      // 長3度・完全5度
+        }
     }
 
     // ハイハットの金属音合成

@@ -53,10 +53,15 @@
                     </div>
                     <div class="status-item">
                         <span class="label"><i class="fa-solid fa-circle-notch"></i> 開放レベル</span>
-                        <span class="value" id="unlocked-level">Step 0-A</span>
+                        <span class="value" id="unlocked-level">Phase 1</span>
                     </div>
                 </div>
                 
+                <div class="volume-control" title="マスター音量">
+                    <i class="fa-solid fa-volume-high" id="btn-mute" role="button" tabindex="0" aria-label="ミュート切り替え"></i>
+                    <input type="range" id="slider-volume" min="0" max="100" value="50" aria-label="音量">
+                </div>
+
                 <button class="secondary-btn" id="btn-login-trigger" style="padding: 8px 14px; font-size: 0.85rem; display: flex; align-items: center; gap: 6px;">
                     <i class="fa-solid fa-right-to-bracket"></i> ログイン
                 </button>
@@ -74,34 +79,34 @@
             <aside class="sidebar-roadmap">
                 <h2 class="section-title">ROADMAP</h2>
                 <nav class="roadmap-steps" id="roadmap-nav">
-                    <button class="roadmap-step-btn active" id="btn-step-0a" data-step="0a">
-                        <span class="step-num">0-A</span>
-                        <span class="step-name"><i class="fa-solid fa-map"></i> 音の地図 (基礎)</span>
+                    <button class="roadmap-step-btn active" id="btn-step-1" data-step="1">
+                        <span class="step-num">Phase 1</span>
+                        <span class="step-name"><i class="fa-solid fa-map"></i> 指板攻略＆基本コード</span>
                         <span class="lock-icon"><i class="fa-solid fa-lock-open"></i></span>
                     </button>
-                    <button class="roadmap-step-btn locked" id="btn-step-0b" data-step="0b" disabled>
-                        <span class="step-num">0-B</span>
-                        <span class="step-name"><i class="fa-solid fa-music"></i> コード＆スケール</span>
-                        <span class="lock-icon"><i class="fa-solid fa-lock"></i></span>
-                    </button>
-                    <button class="roadmap-step-btn locked" id="btn-step-1" data-step="1" disabled>
-                        <span class="step-num">Step 1</span>
-                        <span class="step-name"><i class="fa-solid fa-drum"></i> タイム＆スウィング</span>
-                        <span class="lock-icon"><i class="fa-solid fa-lock"></i></span>
-                    </button>
                     <button class="roadmap-step-btn locked" id="btn-step-2" data-step="2" disabled>
-                        <span class="step-num">Step 2</span>
-                        <span class="step-name"><i class="fa-solid fa-layer-group"></i> シェル・バッキング</span>
+                        <span class="step-num">Phase 2</span>
+                        <span class="step-name"><i class="fa-solid fa-cubes"></i> コード構造＆度数</span>
                         <span class="lock-icon"><i class="fa-solid fa-lock"></i></span>
                     </button>
                     <button class="roadmap-step-btn locked" id="btn-step-3" data-step="3" disabled>
-                        <span class="step-num">Step 3</span>
-                        <span class="step-name"><i class="fa-solid fa-bolt"></i> アドリブ・着地</span>
+                        <span class="step-num">Phase 3</span>
+                        <span class="step-name"><i class="fa-solid fa-bolt"></i> アドリブソロ第一歩</span>
                         <span class="lock-icon"><i class="fa-solid fa-lock"></i></span>
                     </button>
                     <button class="roadmap-step-btn locked" id="btn-step-4" data-step="4" disabled>
-                        <span class="step-num">Step 4</span>
-                        <span class="step-name"><i class="fa-solid fa-users-viewfinder"></i> バーチャルセッション</span>
+                        <span class="step-num">Phase 4</span>
+                        <span class="step-name"><i class="fa-solid fa-palette"></i> 応用モードスケール</span>
+                        <span class="lock-icon"><i class="fa-solid fa-lock"></i></span>
+                    </button>
+                    <button class="roadmap-step-btn locked" id="btn-step-5" data-step="5" disabled>
+                        <span class="step-num">Phase 5</span>
+                        <span class="step-name"><i class="fa-solid fa-layer-group"></i> 分析＆実践伴奏</span>
+                        <span class="lock-icon"><i class="fa-solid fa-lock"></i></span>
+                    </button>
+                    <button class="roadmap-step-btn locked" id="btn-step-6" data-step="6" disabled>
+                        <span class="step-num">Phase 6</span>
+                        <span class="step-name"><i class="fa-solid fa-users-viewfinder"></i> 実践セッション</span>
                         <span class="lock-icon"><i class="fa-solid fa-lock"></i></span>
                     </button>
                 </nav>
@@ -146,9 +151,9 @@
                         <!-- JSでSVG描画 -->
                         <div id="svg-fretboard-wrapper"></div>
                         <div class="fretboard-legend">
-                            <span class="legend-dot root">●</span> ルート (C)
-                            <span class="legend-dot degree3">●</span> 3度 (E)
-                            <span class="legend-dot degree7">●</span> 7度 (B)
+                            <span class="legend-dot root">●</span> ルート
+                            <span class="legend-dot degree3">●</span> 3度
+                            <span class="legend-dot degree7">●</span> 7度
                             <span class="legend-dot scale">●</span> スケール音
                         </div>
                     </div>
@@ -214,6 +219,37 @@
             </form>
         </div>
     </div>
+
+    <!-- 初回訪問オンボーディングモーダル -->
+    <div class="login-modal-overlay" id="onboarding-modal" style="display: none;">
+        <div class="login-modal-card onboarding-card">
+            <h2 class="onboarding-title"><i class="fa-solid fa-guitar" style="color: var(--accent-amber);"></i> ようこそ、Silent Rhythm へ！</h2>
+            <p class="onboarding-lead">
+                楽譜が読めなくても、音楽理論を知らなくても大丈夫。<br>
+                ジャズセッションデビューまでの道のりを、3つのポイントだけ覚えて出発しましょう。
+            </p>
+            <ol class="onboarding-steps">
+                <li>
+                    <span class="onboarding-step-icon"><i class="fa-solid fa-map"></i></span>
+                    <div><strong>左のROADMAPを上から順に</strong><br>書籍「3年後、確実にジャズ・ギターが弾ける練習法」に基づく6つのPhase（全19レッスン）で体系的かつ楽しくステップアップ。</div>
+                </li>
+                <li>
+                    <span class="onboarding-step-icon"><i class="fa-solid fa-arrows-up-down"></i></span>
+                    <div><strong>五線譜と指板はクリックで連動</strong><br>下の五線譜や指板をクリックすると音が鳴り、同じ音の場所がすべて光ります。まずは自由に触ってみて！</div>
+                </li>
+                <li>
+                    <span class="onboarding-step-icon"><i class="fa-solid fa-gamepad"></i></span>
+                    <div><strong>ミニゲームでスコア＆称号アップ</strong><br>各段階のゲームをクリアしポイントを稼ぐと、「路地裏のリスナー」から「ミッドナイト・ジャズマスター」へ称号が進化します。</div>
+                </li>
+            </ol>
+            <button class="action-btn" id="btn-onboarding-start" style="width: 100%; margin-top: 20px;">
+                <i class="fa-solid fa-play"></i> さっそく始める！
+            </button>
+        </div>
+    </div>
+
+    <!-- アニメーション・エフェクトレイヤー -->
+    <div id="jazz-fx-layer" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 9999; overflow: hidden;"></div>
 
     <!-- アプリケーションスクリプトのインポート -->
     <script src="audio-engine.js"></script>
