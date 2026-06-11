@@ -147,10 +147,15 @@ class SilentRhythmApp {
                 this.nickname = userData.nickname || username;
 
                 // 前回開いていたステップから再開（古いIDからマッピング）
-                let lastStep = userData.lastStep || '1';
-                const stepMap = { '0a': '1', '0b': '2', '1': '3', '2': '4', '3': '5', '4': '6' };
-                if (stepMap[lastStep]) {
-                    lastStep = stepMap[lastStep];
+                let lastStep = userData.lastStep;
+                if (lastStep) {
+                    const stepMap = { '0a': '1', '0b': '2', '1': '3', '2': '4', '3': '5', '4': '6' };
+                    // 新しいセーブデータ(version === 2)の場合はマッピングしない
+                    if (userData.version !== 2 && stepMap[lastStep]) {
+                        lastStep = stepMap[lastStep];
+                    }
+                } else {
+                    lastStep = '1';
                 }
                 this.currentStep = lastStep;
                 this.currentLesson = userData.lastLesson || 1;
@@ -177,6 +182,7 @@ class SilentRhythmApp {
             users[this.currentUser].unlockedSteps = Array.from(this.unlockedSteps);
             users[this.currentUser].lastStep = this.currentStep;
             users[this.currentUser].lastLesson = this.currentLesson;
+            users[this.currentUser].version = 2; // 新しい保存フォーマットであることを示す
             localStorage.setItem('sr_users', JSON.stringify(users));
         }
     }
@@ -367,7 +373,8 @@ class SilentRhythmApp {
                     password: password,
                     nickname: nickname,
                     score: 0,
-                    unlockedSteps: ['1', '2', '3', '4', '5', '6']
+                    unlockedSteps: ['1', '2', '3', '4', '5', '6'],
+                    version: 2
                 };
                 localStorage.setItem('sr_users', JSON.stringify(users));
                 localStorage.setItem('sr_current_user', username);
@@ -405,8 +412,8 @@ class SilentRhythmApp {
         this.fretboard = new window.InteractiveFretboard('svg-fretboard-wrapper', (midi, stringIndex, fret) => {
             window.audioEngine.playNote(midi, 1.5, 0.4);
 
-            // Step 3/4/6のバッキング再生中はスケール・ターゲットのガイド表示を消さない
-            const isGuidedPlayback = window.audioEngine.isPlaying && (this.currentStep === '3' || this.currentStep === '4' || this.currentStep === '6');
+            // 特定レッスンのバッキング再生中はスケール・ターゲットのガイド表示を消さない
+            const isGuidedPlayback = window.audioEngine.isPlaying && (this.currentLesson === 7 || this.currentLesson === 8 || this.currentLesson === 11 || this.currentLesson === 18);
 
             // ゲーム中・ガイド再生中でない場合のみ、五線譜がスナップ＆マーカーとオクターブ点線を更新
             if ((!this.gameState || !this.gameState.activeGame) && !isGuidedPlayback) {
@@ -418,7 +425,7 @@ class SilentRhythmApp {
             }
 
             // Phase 3 or Phase 6 (Session) adlib landing detection
-            if ((this.currentStep === '3' || (this.currentStep === '6' && this.currentLesson === 18)) && window.audioEngine.isPlaying) {
+            if ((this.currentLesson === 7 || this.currentLesson === 10 || this.currentLesson === 18) && window.audioEngine.isPlaying) {
                 this.handleAdlibClick(midi, stringIndex, fret);
             }
 
@@ -1298,7 +1305,7 @@ class SilentRhythmApp {
     }
 
     updateBuilderVisualization() {
-        if (this.currentStep !== '2') return;
+        if (this.currentLesson !== 5) return;
         
         const midiStack = this.calculateCurrentMidiStack();
         const degrees = this.calculateCurrentDegrees(midiStack);
@@ -1855,17 +1862,17 @@ class SilentRhythmApp {
         if (btnMemorize0a) btnMemorize0a.addEventListener('click', () => this.startMemorizeMode());
 
         // Lesson 3 シェルコードフォーム
-        if (this.currentStep === '1' && this.currentLesson === 3) {
+        if (this.currentLesson === 3) {
             this.setupChordFormExplorerEvents();
         }
 
         // Lesson 5 度数ビルダー
-        if (this.currentStep === '2' && this.currentLesson === 5) {
+        if (this.currentLesson === 5) {
             this.setupStep0BBuilder();
         }
 
         // Lesson 6 ダイアトニック
-        if (this.currentStep === '2' && this.currentLesson === 6) {
+        if (this.currentLesson === 6) {
             this.setupDiatonicLessonEvents();
         }
 
@@ -1882,7 +1889,7 @@ class SilentRhythmApp {
         }
 
         // Lesson 9 無窮動トレーナー
-        if (this.currentStep === '3' && this.currentLesson === 9) {
+        if (this.currentLesson === 9) {
             this.setupMugyudoEvents();
         }
 
@@ -1947,7 +1954,7 @@ class SilentRhythmApp {
         if (btnStartSession) btnStartSession.addEventListener('click', () => this.startSessionPlayer());
 
         // Lesson 19 マナークイズ
-        if (this.currentStep === '6' && this.currentLesson === 19) {
+        if (this.currentLesson === 19) {
             this.renderMannerQuiz();
         }
     }
@@ -1962,7 +1969,7 @@ class SilentRhythmApp {
         
         midiNotes.forEach((midi, i) => {
             setTimeout(() => {
-                if (this.currentStep !== '2') return;
+                if (this.currentLesson !== 5) return;
                 
                 const type = i === 0 ? 'root' : (i === 1 ? '3rd' : (i === 3 ? '7th' : 'scale'));
                 this.fretboard.addMarker(midi, type);
@@ -1977,7 +1984,7 @@ class SilentRhythmApp {
         });
 
         setTimeout(() => {
-            if (this.currentStep !== '2') return;
+            if (this.currentLesson !== 5) return;
             window.audioEngine.playChord(midiNotes, 1.2, 0.3);
             if (readout) {
                 readout.textContent = `完成: ${chordName} の響き！`;
@@ -2018,7 +2025,7 @@ class SilentRhythmApp {
         
         scaleNotes.slice(0, 8).forEach((midi, i) => {
             setTimeout(() => {
-                if (this.currentStep !== '2') return;
+                if (this.currentLesson !== 5) return;
                 window.audioEngine.playNote(midi, 0.3, 0.3);
             }, i * 150);
         });
@@ -2112,8 +2119,14 @@ class SilentRhythmApp {
         // 1. Root Note buttons
         document.querySelectorAll('.form-root-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                document.querySelectorAll('.form-root-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.form-root-btn').forEach(b => {
+                    b.classList.remove('active');
+                    b.style.border = '1px solid var(--border-glass)';
+                    b.style.background = 'transparent';
+                });
                 btn.classList.add('active');
+                btn.style.border = '1px solid var(--accent-amber)';
+                btn.style.background = 'var(--accent-amber-glow)';
                 this.chordFormState.root = btn.dataset.note;
                 this.updateChordFormVisualization(true);
             });
@@ -2170,7 +2183,7 @@ class SilentRhythmApp {
     }
 
     updateChordFormVisualization(playAudio = true) {
-        if (this.currentStep !== '1') return;
+        if (this.currentLesson !== 3) return;
 
         const isPianoOn = window.audioEngine ? window.audioEngine.pianoEnabled : false;
         const rootName = this.chordFormState.root;
@@ -2549,7 +2562,7 @@ class SilentRhythmApp {
                 this.triggerNeonFeedback('Nice Landing!', coords.x, coords.y);
 
                 // Virtual band members cheer
-                if (this.currentStep === '6') {
+                if (this.currentLesson === 18) {
                     const quotes = ['Nice!', 'Yeah!', 'Groovy!', 'Swing it!', 'Go ahead!', 'Cookin!', 'Sweet!'];
                     const quote = quotes[Math.floor(Math.random() * quotes.length)];
                     const members = ['bass', 'drums', 'piano'];
