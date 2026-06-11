@@ -57,9 +57,14 @@
                     </div>
                 </div>
                 
-                <div class="volume-control" title="マスター音量">
-                    <i class="fa-solid fa-volume-high" id="btn-mute" role="button" tabindex="0" aria-label="ミュート切り替え"></i>
-                    <input type="range" id="slider-volume" min="0" max="100" value="50" aria-label="音量">
+                <div class="volume-control-wrapper">
+                    <div class="volume-control" title="マスター音量">
+                        <i class="fa-solid fa-volume-high" id="btn-mute" role="button" tabindex="0" aria-label="ミュート切り替え"></i>
+                        <input type="range" id="slider-volume" min="0" max="100" value="50" aria-label="音量">
+                    </div>
+                    <div class="mobile-sound-tip">
+                        ※ スマホで音が出ない場合：消音モード（マナースイッチ）解除 ＆ 画面をタップ
+                    </div>
                 </div>
 
                 <button class="secondary-btn" id="btn-login-trigger" style="padding: 8px 14px; font-size: 0.85rem; display: flex; align-items: center; gap: 6px;">

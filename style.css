@@ -1071,6 +1071,14 @@ body::before {
 
 /* モバイル用のゲームHUD調整 */
 @media (max-width: 991px) {
+    .volume-control-wrapper {
+        width: 100%;
+        align-items: center;
+    }
+    .mobile-sound-tip {
+        text-align: center;
+        white-space: normal;
+    }
     .volume-control {
         width: 100%;
         justify-content: space-between;
@@ -1312,6 +1320,18 @@ body::before {
 /* ====================================================
    ヘッダー音量コントロール
    ==================================================== */
+.volume-control-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+}
+.mobile-sound-tip {
+    font-size: 0.62rem;
+    color: var(--text-muted);
+    text-align: right;
+    white-space: nowrap;
+}
 .volume-control {
     display: flex;
     align-items: center;

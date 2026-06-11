@@ -49,8 +49,21 @@ class JazzAudioEngine {
 
     resume() {
         this.init();
-        if (this.ctx.state === 'suspended') {
-            this.ctx.resume();
+        if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume().then(() => {
+                // サイレントバッファの再生によりモバイルブラウザでのオーディオコンテキストを確実にアンロックする
+                try {
+                    const buffer = this.ctx.createBuffer(1, 1, 22050);
+                    const source = this.ctx.createBufferSource();
+                    source.buffer = buffer;
+                    source.connect(this.ctx.destination);
+                    source.start(0);
+                } catch (e) {
+                    console.warn("Failed to play silent buffer to unlock AudioContext:", e);
+                }
+            }).catch(e => {
+                console.error("Failed to resume AudioContext:", e);
+            });
         }
     }
 
@@ -347,3 +360,15 @@ class JazzAudioEngine {
 // グローバルインスタンスの作成
 const audioEngine = new JazzAudioEngine();
 window.audioEngine = audioEngine;
+
+// モバイル端末でのWeb Audio APIロック解除用イベント
+const unlockAudio = () => {
+    if (window.audioEngine) {
+        window.audioEngine.resume();
+    }
+    // 一度実行されたらイベントリスナーを削除
+    window.removeEventListener('click', unlockAudio, { capture: true });
+    window.removeEventListener('touchstart', unlockAudio, { capture: true });
+};
+window.addEventListener('click', unlockAudio, { capture: true });
+window.addEventListener('touchstart', unlockAudio, { capture: true });
