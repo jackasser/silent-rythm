@@ -20,6 +20,7 @@ class InteractiveFretboard {
         this.svg = null;
         this.markersGroup = null;
         this.octaveLinesGroup = null;
+        this.cagedGroup = null;
         
         this.notation = 'cde';
         this.lastClickedKey = null; // 最後にクリックした位置(弦-フレット)の常時表示用
@@ -44,6 +45,9 @@ class InteractiveFretboard {
         
         this.octaveLinesGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         this.svg.appendChild(this.octaveLinesGroup);
+        
+        this.cagedGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        this.svg.appendChild(this.cagedGroup);
         
         this.markersGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         this.svg.appendChild(this.markersGroup);
@@ -627,6 +631,73 @@ class InteractiveFretboard {
     setNotation(type) {
         this.notation = type;
         this.renderMarkers();
+    }
+
+    showCAGED(rootName) {
+        this.hideCAGED();
+        if (!rootName) return;
+
+        const rootFrets6 = { 'C': 8, 'D': 10, 'E': 12, 'F': 1, 'G': 3, 'A': 5, 'B': 7 };
+        let r6 = rootFrets6[rootName];
+        if (!r6) return;
+
+        const configurations = [
+            { name: 'E Block', offset: 0, range: [-1, 2], color: 'rgba(167, 139, 250, 0.03)', border: 'rgba(167, 139, 250, 0.25)' },
+            { name: 'D Block', offset: 2, range: [-1, 3], color: 'rgba(251, 113, 133, 0.03)', border: 'rgba(251, 113, 133, 0.25)' },
+            { name: 'C Block', offset: 5, range: [-2, 1], color: 'rgba(251, 191, 36, 0.03)', border: 'rgba(251, 191, 36, 0.25)' },
+            { name: 'A Block', offset: 7, range: [-1, 3], color: 'rgba(56, 189, 248, 0.03)', border: 'rgba(56, 189, 248, 0.25)' },
+            { name: 'G Block', offset: 10, range: [-3, 1], color: 'rgba(52, 211, 153, 0.03)', border: 'rgba(52, 211, 153, 0.25)' }
+        ];
+
+        configurations.forEach(cfg => {
+            let baseCenter = (r6 + cfg.offset) % 12;
+            if (baseCenter <= 0) baseCenter += 12;
+
+            const centers = [baseCenter - 12, baseCenter, baseCenter + 12, baseCenter + 24];
+            centers.forEach(center => {
+                let start = center + cfg.range[0];
+                let end = center + cfg.range[1];
+
+                if (start < 0) start = 0;
+                if (end > 24) end = 24;
+                if (start > 24 || end < 0 || start > end) return;
+
+                const xStart = start === 0 ? 45 : this.getFretX(start - 1);
+                const xEnd = this.getFretX(end);
+                const width = xEnd - xStart;
+
+                if (width <= 0) return;
+
+                const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                rect.setAttribute('x', xStart);
+                rect.setAttribute('y', 10);
+                rect.setAttribute('width', width);
+                rect.setAttribute('height', this.height - 20);
+                rect.setAttribute('fill', cfg.color);
+                rect.setAttribute('stroke', cfg.border);
+                rect.setAttribute('stroke-width', '1.5');
+                rect.setAttribute('stroke-dasharray', '4 4');
+                rect.setAttribute('rx', '6');
+                this.cagedGroup.appendChild(rect);
+
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', xStart + width / 2);
+                text.setAttribute('y', this.height - 14);
+                text.setAttribute('fill', cfg.border);
+                text.setAttribute('font-family', 'var(--font-heading)');
+                text.setAttribute('font-size', '9px');
+                text.setAttribute('font-weight', 'bold');
+                text.setAttribute('text-anchor', 'middle');
+                text.textContent = cfg.name;
+                this.cagedGroup.appendChild(text);
+            });
+        });
+    }
+
+    hideCAGED() {
+        if (this.cagedGroup) {
+            this.cagedGroup.innerHTML = '';
+        }
     }
 }
 

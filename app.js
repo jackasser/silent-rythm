@@ -25,6 +25,8 @@ class SilentRhythmApp {
             string: '6', // '6' | '5'
             type: 'min7' // 'maj7' | 'min7' | 'dom7'
         };
+
+        this.cagedEnabled = false;
         
         // ユーザー称号の定義 (リニューアル版)
         this.titles = [
@@ -430,6 +432,10 @@ class SilentRhythmApp {
             
             if (this.gameState && this.gameState.activeGame === 'builder') {
                 this.handleBuilderClick(midi);
+            }
+
+            if (this.gameState && this.gameState.activeGame === 'mugyudo') {
+                this.handleMugyudoClick(midi, stringIndex, fret);
             }
         });
     }
@@ -945,9 +951,14 @@ class SilentRhythmApp {
                         <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 8px; border: 1px solid rgba(255,255,255,0.03);">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <span style="font-size: 0.72rem; color: var(--accent-amber); font-weight: bold;"><i class="fa-solid fa-gamepad"></i> アドリブ・サンドボックスモード</span>
-                                <button class="secondary-btn" id="btn-toggle-sandbox-backing" style="padding: 4px 8px; font-size: 0.72rem; display: flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.05);">
-                                    <i class="fa-solid fa-play"></i> 伴奏を再生
-                                </button>
+                                <div style="display: flex; gap: 6px;">
+                                    <button class="secondary-btn ${this.cagedEnabled ? 'active' : ''}" id="btn-toggle-caged" style="padding: 4px 8px; font-size: 0.72rem; display: flex; align-items: center; gap: 4px; background: ${this.cagedEnabled ? 'var(--accent-amber-glow)' : 'rgba(255, 255, 255, 0.05)'}; border-color: ${this.cagedEnabled ? 'var(--accent-amber)' : 'rgba(255,255,255,0.1)'}; color: #fff;">
+                                        <i class="fa-solid fa-border-all"></i> CAGEDガイド
+                                    </button>
+                                    <button class="secondary-btn" id="btn-toggle-sandbox-backing" style="padding: 4px 8px; font-size: 0.72rem; display: flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.05);">
+                                        <i class="fa-solid fa-play"></i> 伴奏を再生
+                                    </button>
+                                </div>
                             </div>
                             <p style="font-size: 0.72rem; color: var(--text-muted); margin: 0; line-height: 1.35;">
                                 指板上で光っているスケール音（オレンジ色のマーカー）を、マウスやタッチで適当にクリックしてみましょう。伴奏に合わせて弾くだけで、外さない即興ソロが体験できます！
@@ -1193,6 +1204,25 @@ class SilentRhythmApp {
                 }
             };
         }
+
+        // Step 5: CAGED guide toggle
+        const btnToggleCaged = document.getElementById('btn-toggle-caged');
+        if (btnToggleCaged) {
+            btnToggleCaged.onclick = () => {
+                this.cagedEnabled = !this.cagedEnabled;
+                if (this.cagedEnabled) {
+                    btnToggleCaged.classList.add('active');
+                    btnToggleCaged.style.background = 'var(--accent-amber-glow)';
+                    btnToggleCaged.style.borderColor = 'var(--accent-amber)';
+                    this.fretboard.showCAGED(this.builderState.rootName);
+                } else {
+                    btnToggleCaged.classList.remove('active');
+                    btnToggleCaged.style.background = 'rgba(255, 255, 255, 0.05)';
+                    btnToggleCaged.style.borderColor = 'rgba(255,255,255,0.1)';
+                    this.fretboard.hideCAGED();
+                }
+            };
+        }
     }
 
     getMidiFromName(note) {
@@ -1303,6 +1333,11 @@ class SilentRhythmApp {
             }
             this.fretboard.renderMarkers();
             this.staff.setChordNotes(midiStack, degrees);
+            if (this.cagedEnabled) {
+                this.fretboard.showCAGED(this.builderState.rootName);
+            } else {
+                this.fretboard.hideCAGED();
+            }
         } else {
             // Chord Builder Mode
             midiStack.forEach((midi, idx) => {
@@ -1321,6 +1356,7 @@ class SilentRhythmApp {
             });
             this.fretboard.renderMarkers();
             this.staff.setChordNotes(midiStack, degrees);
+            this.fretboard.hideCAGED();
         }
         
         // Play chord preview
@@ -1524,9 +1560,34 @@ class SilentRhythmApp {
                 <p class="lesson-desc">
                     スケールを適当に弾くだけでなく、コードの構成音（アルペジオ）をなぞるように弾くことで、コード進行に完全に寄り添った説得力のあるアドリブが可能になります。
                 </p>
-                <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 12px; border: 1px solid var(--border-glass); font-size: 0.75rem; line-height: 1.4;">
-                    指板上に <strong>Gm7 のコードトーン (G, B♭, D, F)</strong> を表示します。<br>
-                    ルートから順番に指板のハイライトをクリックして、コードアルペジオの「光る道筋」をなぞってみましょう。
+                
+                <div class="lesson-interactive-panel" style="display: flex; flex-direction: column; gap: 10px;">
+                    <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 12px; border: 1px solid var(--border-glass); font-size: 0.75rem; line-height: 1.4;">
+                        <strong>【無窮動式】8分音符イージートレーナー</strong><br>
+                        メトロノームに合わせて、光るアルペジオ（Gm7）の音順にテンポよくクリックしてください。立ち止まらずに弾くリズム感を養います。
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.15); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.02);">
+                        <div>
+                            <span style="font-size: 0.7rem; color: var(--text-muted); font-weight: bold;"><i class="fa-solid fa-gauge-high"></i> TEMPO (BPM)</span>
+                            <div style="display: flex; align-items: center; gap: 8px; margin-top: 2px;">
+                                <input type="range" id="slider-mugyudo-bpm" min="40" max="90" value="60" style="width: 80px; accent-color: var(--accent-amber);">
+                                <span id="label-mugyudo-bpm" style="font-weight: bold; color: var(--accent-amber); font-size: 0.85rem;">60 BPM</span>
+                            </div>
+                        </div>
+                        <button class="action-btn" id="btn-start-mugyudo" style="padding: 6px 12px; font-size: 0.72rem;">
+                            <i class="fa-solid fa-play"></i> トレーニング開始
+                        </button>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass); border-radius: 8px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem;">
+                        <div>
+                            <span style="color: var(--text-muted);"><i class="fa-solid fa-bullseye"></i> 次の音:</span>
+                            <span id="mugyudo-next-note" style="font-weight: 800; color: var(--accent-amber); font-size: 0.85rem; margin-left: 4px;">-</span>
+                        </div>
+                        <div>
+                            <span style="color: var(--text-muted);">スコア:</span>
+                            <span id="mugyudo-score" style="font-weight: 800; color: var(--accent-emerald); font-size: 0.85rem; margin-left: 4px;">0</span>
+                        </div>
+                    </div>
                 </div>
             `;
         }
@@ -1677,9 +1738,35 @@ class SilentRhythmApp {
                 </p>
                 <div class="lesson-interactive-panel" style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 12px; border: 1px solid var(--border-glass); text-align: center;">
                     <span style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-bottom: 8px;">定番常套句デモ：</span>
-                    <div style="display: flex; gap: 8px; justify-content: center;">
+                    <div style="display: flex; gap: 8px; justify-content: center; margin-bottom: 15px;">
                         <button class="action-btn" id="btn-play-intro" style="padding: 8px 14px; font-size: 0.75rem;"><i class="fa-solid fa-headphones"></i> 逆循環イントロ進行</button>
                         <button class="action-btn" id="btn-play-ending" style="padding: 8px 14px; font-size: 0.75rem;"><i class="fa-solid fa-headphones"></i> ジャズ定番エンディング</button>
+                    </div>
+                </div>
+
+                <div class="voicing-explorer-card" style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-glass); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; gap: 10px; margin-top: 15px;">
+                    <span style="font-size: 0.72rem; color: var(--accent-amber); font-weight: bold;"><i class="fa-solid fa-graduation-cap"></i> Barry Harris 「6th Diminished」イントロメーカー</span>
+                    <p style="font-size: 0.72rem; color: var(--text-muted); margin: 0; line-height: 1.4;">
+                        メロディ（トップ音）をクリックすると、自動的に「C6」または「Ddim7」を割り当ててお洒落なイントロ用コードソロを作ります。
+                    </p>
+                    <div style="display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; margin: 5px 0;">
+                        ${[
+                            { note: 'C', type: 'C6', notes: [48, 55, 57, 60], label: 'C6 (トニック)' },
+                            { note: 'D', type: 'Ddim7', notes: [50, 53, 56, 59], label: 'Ddim7 (パッシング)' },
+                            { note: 'E', type: 'C6', notes: [52, 55, 57, 60], label: 'C6 (トニック)' },
+                            { note: 'F', type: 'Ddim7', notes: [53, 56, 59, 62], label: 'Ddim7 (パッシング)' },
+                            { note: 'G', type: 'C6', notes: [55, 57, 60, 64], label: 'C6 (トニック)' },
+                            { note: 'Ab', type: 'Ddim7', notes: [56, 59, 62, 65], label: 'Ddim7 (パッシング)' },
+                            { note: 'A', type: 'C6', notes: [57, 60, 64, 67], label: 'C6 (トニック)' },
+                            { note: 'B', type: 'Ddim7', notes: [59, 62, 65, 68], label: 'Ddim7 (パッシング)' }
+                        ].map(cfg => `
+                            <button class="barry-btn" data-notes="${cfg.notes.join(',')}" data-label="${cfg.label}" data-note="${cfg.note}" style="padding: 6px 8px; font-size: 0.7rem; border-radius: 6px; border: 1px solid var(--border-glass); background: rgba(255,255,255,0.02); color: #fff; cursor: pointer; transition: all 0.2s; min-width: 42px;">
+                                ${cfg.note}<br><span style="font-size:0.55rem; color: var(--text-muted);">${cfg.type}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+                    <div style="background: rgba(0,0,0,0.15); border-radius: 8px; padding: 8px; text-align: center; font-size: 0.72rem; color: var(--text-muted);" id="barry-readout">
+                        トップメロディの音名ボタンをクリックして、コードチェインを聴いてみましょう。
                     </div>
                 </div>
             `;
@@ -1794,6 +1881,11 @@ class SilentRhythmApp {
             btnPlayResolve.addEventListener('click', () => this.playResolveDemo());
         }
 
+        // Lesson 9 無窮動トレーナー
+        if (this.currentStep === '3' && this.currentLesson === 9) {
+            this.setupMugyudoEvents();
+        }
+
         // Lesson 10 ターゲット着地
         const btnToggleTarget = document.getElementById('btn-toggle-target-playback');
         if (btnToggleTarget) {
@@ -1848,6 +1940,7 @@ class SilentRhythmApp {
         if (btnPlayIntro) btnPlayIntro.addEventListener('click', () => this.playIntroDemo());
         const btnPlayEnding = document.getElementById('btn-play-ending');
         if (btnPlayEnding) btnPlayEnding.addEventListener('click', () => this.playEndingDemo());
+        this.setupBarryHarrisEvents();
 
         // Lesson 18 セッション
         const btnStartSession = document.getElementById('btn-start-session');
@@ -2079,6 +2172,7 @@ class SilentRhythmApp {
     updateChordFormVisualization(playAudio = true) {
         if (this.currentStep !== '1') return;
 
+        const isPianoOn = window.audioEngine ? window.audioEngine.pianoEnabled : false;
         const rootName = this.chordFormState.root;
         const string = this.chordFormState.string;
         const type = this.chordFormState.type;
@@ -2720,6 +2814,145 @@ class SilentRhythmApp {
             tipsBox.innerHTML = `<i class="fa-solid fa-circle-question" style="color: var(--accent-blue);"></i> <strong>現場のマナー</strong>: イントロからテーマの演奏中は、キーボード of フロントのフレーズをよく聴きながら、自分の音量を控えめにするのが美しいアンサンブルの第一歩です。`;
         }
         this.fretboard.clearMarkers();
+    }
+
+    /* ====================================================
+       【無窮動式】 8分音符イージートレーナー (Lesson 09)
+       ==================================================== */
+    setupMugyudoEvents() {
+        const btnStart = document.getElementById('btn-start-mugyudo');
+        if (btnStart) {
+            btnStart.onclick = () => {
+                if (this.gameState && this.gameState.activeGame === 'mugyudo') {
+                    this.cleanupActiveGame();
+                    btnStart.innerHTML = '<i class="fa-solid fa-play"></i> トレーニング開始';
+                    this.fretboard.clearMarkers();
+                    this.fretboard.renderMarkers();
+                } else {
+                    this.startMugyudoTrainer();
+                }
+            };
+        }
+
+        const sliderBpm = document.getElementById('slider-mugyudo-bpm');
+        const labelBpm = document.getElementById('label-mugyudo-bpm');
+        if (sliderBpm && labelBpm) {
+            sliderBpm.oninput = () => {
+                labelBpm.textContent = `${sliderBpm.value} BPM`;
+                if (this.gameState && this.gameState.activeGame === 'mugyudo') {
+                    clearInterval(this.gameInterval);
+                    const bpm = parseInt(sliderBpm.value, 10);
+                    this.gameState.bpm = bpm;
+                    const intervalMs = (60 / bpm) * 1000;
+                    this.gameInterval = setInterval(() => {
+                        this.nextMugyudoTick();
+                    }, intervalMs);
+                }
+            };
+        }
+    }
+
+    startMugyudoTrainer() {
+        this.cleanupActiveGame();
+
+        const sliderBpm = document.getElementById('slider-mugyudo-bpm');
+        const bpm = sliderBpm ? parseInt(sliderBpm.value, 10) : 60;
+        
+        this.gameState = {
+            activeGame: 'mugyudo',
+            score: 0,
+            bpm: bpm,
+            currentIndex: 0,
+            path: [
+                { midi: 43, loc: '5-3', name: 'G (6弦3F)' },
+                { midi: 46, loc: '4-1', name: 'Bb (5弦1F)' },
+                { midi: 50, loc: '4-5', name: 'D (5弦5F)' },
+                { midi: 53, loc: '3-3', name: 'F (4弦3F)' },
+                { midi: 55, loc: '3-5', name: 'G (4弦5F)' },
+                { midi: 58, loc: '2-3', name: 'Bb (3弦3F)' },
+                { midi: 62, loc: '2-7', name: 'D (3弦7F)' },
+                { midi: 65, loc: '1-6', name: 'F (2弦6F)' },
+                { midi: 62, loc: '2-7', name: 'D (3弦7F)' },
+                { midi: 58, loc: '2-3', name: 'Bb (3弦3F)' },
+                { midi: 55, loc: '3-5', name: 'G (4弦5F)' },
+                { midi: 53, loc: '3-3', name: 'F (4弦3F)' },
+                { midi: 50, loc: '4-5', name: 'D (5弦5F)' },
+                { midi: 46, loc: '4-1', name: 'Bb (5弦1F)' }
+            ],
+            hasClickedCurrent: false
+        };
+
+        const btnStart = document.getElementById('btn-start-mugyudo');
+        if (btnStart) btnStart.innerHTML = '<i class="fa-solid fa-square"></i> トレーニング停止';
+
+        const scoreEl = document.getElementById('mugyudo-score');
+        if (scoreEl) scoreEl.textContent = '0';
+
+        this.nextMugyudoTick();
+
+        const intervalMs = (60 / bpm) * 1000;
+        this.gameInterval = setInterval(() => {
+            this.nextMugyudoTick();
+        }, intervalMs);
+    }
+
+    nextMugyudoTick() {
+        if (!this.gameState || this.gameState.activeGame !== 'mugyudo') return;
+
+        window.audioEngine.playNote(76, 0.05, 0.05);
+
+        const target = this.gameState.path[this.gameState.currentIndex];
+        this.gameState.hasClickedCurrent = false;
+
+        const nextNoteEl = document.getElementById('mugyudo-next-note');
+        if (nextNoteEl) nextNoteEl.textContent = target.name;
+
+        this.fretboard.clearMarkers();
+        this.fretboard.setDisplayMode('notes');
+
+        this.gameState.path.forEach((note, idx) => {
+            if (idx === this.gameState.currentIndex) {
+                this.fretboard.addMarker(note.loc, 'question');
+            } else {
+                this.fretboard.addMarker(note.loc, 'scale');
+            }
+        });
+        this.fretboard.renderMarkers();
+
+        this.staff.setNoteByMidi(target.midi, true);
+
+        this.gameState.currentIndex = (this.gameState.currentIndex + 1) % this.gameState.path.length;
+    }
+
+    handleMugyudoClick(midi, stringIndex, fret) {
+        if (!this.gameState || this.gameState.activeGame !== 'mugyudo') return;
+        if (this.gameState.hasClickedCurrent) return;
+
+        const activeIdx = (this.gameState.currentIndex - 1 + this.gameState.path.length) % this.gameState.path.length;
+        const target = this.gameState.path[activeIdx];
+
+        const coords = this.getFretboardClientCoords(stringIndex, fret);
+        const x = coords ? coords.x : window.innerWidth / 2;
+        const y = coords ? coords.y : window.innerHeight / 2;
+
+        if (midi === target.midi) {
+            this.gameState.hasClickedCurrent = true;
+            this.gameState.score += 10;
+            this.score += 10;
+            this.saveCurrentUserData();
+
+            const scoreEl = document.getElementById('mugyudo-score');
+            if (scoreEl) scoreEl.textContent = this.gameState.score;
+
+            const ratings = ['Nice Flow!', 'In Time!', 'Perfect!', 'Swing!'];
+            const rating = ratings[Math.floor(Math.random() * ratings.length)];
+            this.triggerNeonFeedback(rating, x, y);
+
+            this.fretboard.addMarker(target.loc, 'root');
+            this.fretboard.renderMarkers();
+        } else {
+            this.triggerNeonFeedback('Wrong Fret!', x, y);
+        }
     }
 
     /* ====================================================
@@ -3647,7 +3880,9 @@ class SilentRhythmApp {
         if (this.fretboard) {
             this.fretboard.setOctaveHighlight(null, false);
             this.fretboard.setDisplayMode('notes');
+            this.fretboard.hideCAGED();
         }
+        this.cagedEnabled = false;
         // 五線譜の音符表示を復活させてテキストを復元
         if (this.staff && this.staff.noteEl) {
             this.staff.noteEl.style.display = 'block';
@@ -4358,6 +4593,41 @@ class SilentRhythmApp {
                 btn.innerHTML = '<i class="fa-solid fa-headphones"></i>  ジャズ定番エンディング';
             }
         }, 4200);
+    }
+
+    setupBarryHarrisEvents() {
+        const buttons = document.querySelectorAll('.barry-btn');
+        buttons.forEach(btn => {
+            btn.onclick = () => {
+                const notesStr = btn.getAttribute('data-notes');
+                const label = btn.getAttribute('data-label');
+                const note = btn.getAttribute('data-note');
+                if (!notesStr) return;
+
+                const notes = notesStr.split(',').map(n => parseInt(n, 10));
+
+                window.audioEngine.playChord(notes, 0.8, 0.45);
+
+                this.fretboard.clearMarkers();
+                this.fretboard.setDisplayMode('notes');
+                
+                notes.forEach((n, idx) => {
+                    const type = idx === notes.length - 1 ? 'root' : 'scale';
+                    this.fretboard.addMarker(n, type);
+                });
+                this.fretboard.renderMarkers();
+
+                this.staff.setChordNotes(notes, notes.map((n, idx) => idx === notes.length - 1 ? 'root' : 'scale'));
+
+                const readout = document.getElementById('barry-readout');
+                if (readout) {
+                    readout.innerHTML = `トップメロディ: <strong style="color: var(--accent-amber);">${note}</strong> ➔ <strong style="color: var(--text-primary);">${label}</strong> を自動選択してハモりました！`;
+                }
+
+                const rect = btn.getBoundingClientRect();
+                this.triggerNeonFeedback(label, rect.left + rect.width / 2, rect.top);
+            };
+        });
     }
 
     renderMannerQuiz() {
