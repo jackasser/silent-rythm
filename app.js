@@ -27,6 +27,15 @@ class SilentRhythmApp {
         };
 
         this.cagedEnabled = false;
+
+        this.lesson4State = {
+            root: 'C',
+            type: 'maj7',
+            topNote: 'root'
+        };
+
+
+
         
         // ユーザー称号の定義 (リニューアル版)
         this.titles = [
@@ -1467,17 +1476,51 @@ class SilentRhythmApp {
             return `
                 <div class="lesson-header">
                     <span class="lesson-badge"><i class="fa-solid fa-cubes"></i> Lesson 04</span>
-                    <h3 class="lesson-title">コード・トーン・ハーモナイズ</h3>
+                    <h3 class="lesson-title">コード・トーン・ハーモナイズ (1〜4弦 Drop 2 転回形)</h3>
                 </div>
                 <p class="lesson-desc">
-                    ルート、3度、5度、7度の基本の4和音にテンションを重ねる手法を学びます。<br>
-                    ジャズでお洒落なサウンドを作る基礎となる「積み重ね」のバリエーションです。
+                    1〜4弦（トップ4弦）は、ギターでメロディと伴奏を同時に奏でる際に最も重要な領域です。各コードタイプにおいて、<strong>どの音（度数）が最高音（トップ音）に位置するか</strong>によって、4つの「転回形（Inversion）」が生まれます。それぞれのフォームと響きの違いを体験しましょう。
                 </p>
-                <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass); border-radius: 12px; padding: 15px; text-align: center; font-size: 0.78rem;">
-                    <p style="margin-bottom: 8px; color: var(--text-secondary);">4和音の音を重ねる順番を工夫するだけで、お洒落な響きが変化します。</p>
-                    <div style="display: flex; justify-content: center; gap: 8px;">
-                        <button class="action-btn" onclick="window.audioEngine.playChord([48, 55, 59, 64], 0.8, 0.5)" style="padding: 8px 14px; font-size: 0.75rem;"><i class="fa-solid fa-volume-high"></i> Cmaj7 プレビュー</button>
-                        <button class="secondary-btn" onclick="window.audioEngine.playChord([48, 55, 59, 64, 66], 0.8, 0.5)" style="padding: 8px 14px; font-size: 0.75rem;"><i class="fa-solid fa-volume-high"></i> Cmaj9 プレビュー</button>
+                
+                <!-- コード・トーン・ハーモナイズの解説カード -->
+                <div style="background: linear-gradient(135deg, rgba(251, 191, 36, 0.04) 0%, rgba(0,0,0,0) 100%); border: 1px dashed rgba(251, 191, 36, 0.22); border-radius: 12px; padding: 12px; font-size: 0.76rem; line-height: 1.45; color: var(--text-secondary); margin-bottom: 8px;">
+                    <span style="color: var(--accent-amber); font-weight: bold; display: block; margin-bottom: 4px; font-size: 0.8rem;"><i class="fa-solid fa-circle-question"></i> コード・トーン・ハーモナイズとは？</span>
+                    単音のメロディ音（1弦の最高音＝トップ音）に対して、その下にコード構成音（ハーモニー）を重ねて和音（コード）にする手法です。ギターの1弦は耳に最も強く届くため、<strong>「メロディの音を常に1弦に配置したまま、2〜4弦でコードを支える」</strong>ことで美しいソロギターや伴奏ができます。メロディの音の動き（ド・レ・ミ…）に合わせてスムーズにコードを切り替えていくために、この4つの「転回形」のフォームを学びます。
+                </div>
+
+                <div class="voicing-explorer-card" style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-glass); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; gap: 10px;">
+                    <div style="display: flex; flex-direction: column; gap: 6px; padding: 8px; background: rgba(0,0,0,0.15); border-radius: 8px; border: 1px solid rgba(255,255,255,0.02);">
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: bold; width: 75px;">1. ルート音:</span>
+                            <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                                ${['C', 'D', 'E', 'F', 'G', 'A', 'B'].map(note => `
+                                    <button class="l4-root-btn ${this.lesson4State.root === note ? 'active' : ''}" data-note="${note}" style="width: 26px; height: 26px; border-radius: 50%; border: 1px solid ${this.lesson4State.root === note ? 'var(--accent-amber)' : 'var(--border-glass)'}; background: ${this.lesson4State.root === note ? 'var(--accent-amber-glow)' : 'transparent'}; color: #fff; font-weight: bold; cursor: pointer; font-size: 0.72rem; transition: all 0.2s ease;">
+                                        ${note}
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 4px;">
+                            <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: bold; width: 75px;">2. タイプ:</span>
+                            <button class="l4-type-btn toggle-btn ${this.lesson4State.type === 'maj7' ? 'active' : ''}" data-type="maj7" style="padding: 4px 8px; font-size: 0.7rem;">Maj7</button>
+                            <button class="l4-type-btn toggle-btn ${this.lesson4State.type === 'min7' ? 'active' : ''}" data-type="min7" style="padding: 4px 8px; font-size: 0.7rem;">m7</button>
+                            <button class="l4-type-btn toggle-btn ${this.lesson4State.type === 'dom7' ? 'active' : ''}" data-type="dom7" style="padding: 4px 8px; font-size: 0.7rem;">7 (ドミナント)</button>
+                            <button class="l4-type-btn toggle-btn ${this.lesson4State.type === 'm7b5' ? 'active' : ''}" data-type="m7b5" style="padding: 4px 8px; font-size: 0.7rem;">m7(♭5)</button>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 4px;">
+                            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                <span style="font-size: 0.72rem; color: var(--accent-amber); font-weight: bold; width: 85px;"><i class="fa-solid fa-star"></i> [1] 基本の変形:</span>
+                                <button class="l4-top-btn toggle-btn ${this.lesson4State.topNote === 'root' ? 'active' : ''}" data-top="root" style="padding: 4px 8px; font-size: 0.7rem;">Rootがトップ (6弦ルート変形)</button>
+                                <button class="l4-top-btn toggle-btn ${this.lesson4State.topNote === '3rd' ? 'active' : ''}" data-top="3rd" style="padding: 4px 8px; font-size: 0.7rem;">3度がトップ (5弦ルート変形)</button>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 2px;">
+                                <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: bold; width: 85px;"><i class="fa-solid fa-circle-chevron-right"></i> [2] 応用の展開:</span>
+                                <button class="l4-top-btn toggle-btn ${this.lesson4State.topNote === '5th' ? 'active' : ''}" data-top="5th" style="padding: 4px 8px; font-size: 0.7rem;">5度トップ (第三転回形)</button>
+                                <button class="l4-top-btn toggle-btn ${this.lesson4State.topNote === '7th' ? 'active' : ''}" data-top="7th" style="padding: 4px 8px; font-size: 0.7rem;">7度トップ (基本形)</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="lesson4-form-guidance" style="background: rgba(255,255,255,0.02); border: 1px dashed rgba(251, 191, 36, 0.2); border-radius: 8px; padding: 10px; font-size: 0.75rem; line-height: 1.4;">
                     </div>
                 </div>
             `;
@@ -1906,6 +1949,12 @@ class SilentRhythmApp {
             this.setupChordFormExplorerEvents();
         }
 
+        // Lesson 4 コード・トーン・ハーモナイズ (1~4弦 Drop2)
+        if (this.currentLesson === 4) {
+            this.setupLesson4Events();
+        }
+
+
         // Lesson 5 度数ビルダー
         if (this.currentLesson === 5) {
             this.setupStep0BBuilder();
@@ -2154,6 +2203,282 @@ class SilentRhythmApp {
                 window.audioEngine.playNote(midi, 0.5, 0.4);
             }, i * 150);
         });
+    }
+
+    setupLesson4Events() {
+        // 1. Root Note buttons
+        document.querySelectorAll('.l4-root-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.l4-root-btn').forEach(b => {
+                    b.classList.remove('active');
+                    b.style.borderColor = 'var(--border-glass)';
+                    b.style.background = 'transparent';
+                });
+                btn.classList.add('active');
+                btn.style.borderColor = 'var(--accent-amber)';
+                btn.style.background = 'var(--accent-amber-glow)';
+                
+                this.lesson4State.root = btn.dataset.note;
+                this.updateLesson4Visualization(true);
+            });
+        });
+
+        // 2. Type buttons
+        const setTypeActive = (activeBtn, type) => {
+            document.querySelectorAll('.l4-type-btn').forEach(b => b.classList.remove('active'));
+            activeBtn.classList.add('active');
+            this.lesson4State.type = type;
+            this.updateLesson4Visualization(true);
+        };
+        const types = ['maj7', 'min7', 'dom7', 'm7b5'];
+        types.forEach(t => {
+            const btn = document.querySelector(`.l4-type-btn[data-type="${t}"]`);
+            if (btn) btn.addEventListener('click', () => setTypeActive(btn, t));
+        });
+
+        // 3. Top note buttons
+        const setTopActive = (activeBtn, top) => {
+            document.querySelectorAll('.l4-top-btn').forEach(b => b.classList.remove('active'));
+            activeBtn.classList.add('active');
+            this.lesson4State.topNote = top;
+            this.updateLesson4Visualization(true);
+        };
+        const tops = ['root', '3rd', '5th', '7th'];
+        tops.forEach(top => {
+            const btn = document.querySelector(`.l4-top-btn[data-top="${top}"]`);
+            if (btn) btn.addEventListener('click', () => setTopActive(btn, top));
+        });
+
+        // Initial render without audio playing immediately
+        this.updateLesson4Visualization(false);
+    }
+
+    updateLesson4Visualization(playAudio = true) {
+        if (this.currentLesson !== 4) return;
+
+        const rootName = this.lesson4State.root;
+        const type = this.lesson4State.type;
+        const topNote = this.lesson4State.topNote;
+
+        const semitones = { 'C': 0, 'D': 2, 'E': 4, 'F': 5, 'G': 7, 'A': 9, 'B': 11 };
+        const baseRootMidi = 48 + semitones[rootName]; // C3 base
+
+        const offset3rd = (type === 'maj7' || type === 'dom7') ? 4 : 3;
+        const offset5th = (type === 'm7b5') ? 6 : 7;
+        const offset7th = (type === 'maj7') ? 11 : 10;
+
+        const pRoot = baseRootMidi;
+        const p3rd = baseRootMidi + offset3rd;
+        const p5th = baseRootMidi + offset5th;
+        const p7th = baseRootMidi + offset7th;
+
+        let targetDegrees = [];
+        let targetMidis = [];
+
+        if (topNote === 'root') { // 1st Inversion
+            targetDegrees = ['7th', '3rd', '5th', 'root'];
+            targetMidis = [p7th - 12, p3rd, p5th, pRoot + 12];
+        } else if (topNote === '3rd') { // 2nd Inversion
+            targetDegrees = ['root', '5th', '7th', '3rd'];
+            targetMidis = [pRoot, p5th, p7th, p3rd + 12];
+        } else if (topNote === '5th') { // 3rd Inversion
+            targetDegrees = ['3rd', '7th', 'root', '5th'];
+            targetMidis = [p3rd, p7th, pRoot + 12, p5th + 12];
+        } else if (topNote === '7th') { // Root Position
+            targetDegrees = ['5th', 'root', '3rd', '7th'];
+            targetMidis = [p5th, pRoot + 12, p3rd + 12, p7th + 12];
+        }
+
+        const openStrings = [64, 59, 55, 50]; // 1, 2, 3, 4 strings
+
+        // Adjust octave so 4th string fret falls into 1-12 range
+        let fret4 = targetMidis[0] - openStrings[3];
+        while (fret4 < 1) {
+            targetMidis = targetMidis.map(m => m + 12);
+            fret4 = targetMidis[0] - openStrings[3];
+        }
+        while (fret4 > 12) {
+            targetMidis = targetMidis.map(m => m - 12);
+            fret4 = targetMidis[0] - openStrings[3];
+        }
+
+        const fret4Val = targetMidis[0] - 50;
+        const fret3Val = targetMidis[1] - 55;
+        const fret2Val = targetMidis[2] - 59;
+        const fret1Val = targetMidis[3] - 64;
+
+        const targetFrets = [fret4Val, fret3Val, fret2Val, fret1Val];
+
+        this.fretboard.clearMarkers();
+        this.fretboard.setDisplayMode('degrees');
+        
+        this.fretboard.addMarker(`3-${fret4Val}`, targetDegrees[0]);
+        this.fretboard.addMarker(`2-${fret3Val}`, targetDegrees[1]);
+        this.fretboard.addMarker(`1-${fret2Val}`, targetDegrees[2]);
+        this.fretboard.addMarker(`0-${fret1Val}`, targetDegrees[3]);
+        
+        this.fretboard.renderMarkers();
+
+        this.staff.setChordNotes(targetMidis, targetDegrees);
+
+        const guidanceEl = document.getElementById('lesson4-form-guidance');
+        if (guidanceEl) {
+            const chordName = `${rootName}${type === 'maj7' ? 'maj7' : type === 'min7' ? 'm7' : type === 'm7b5' ? 'm7(♭5)' : '7'}`;
+            const topDegreeName = topNote === 'root' ? 'ルート音' : topNote === '3rd' ? '3度音' : topNote === '5th' ? '5度音' : '7度音';
+            const invName = topNote === 'root' ? 'Rootがトップ (6弦ルートの変形)' : topNote === '3rd' ? '3度がトップ (5弦ルートの変形)' : topNote === '5th' ? '5度トップ (第三転回形)' : '7度トップ (基本形)';
+            
+            const fingers = this.getLesson4Fingering(type, topNote);
+
+            const fingeringHtml = `
+                <li><strong>4弦 ${fret4Val}F</strong>: <strong>${fingers[0]}指</strong> (${targetDegrees[0] === 'root' ? 'ルート音' : targetDegrees[0] === '7th' ? '7度' : targetDegrees[0] === '5th' ? '5度' : targetDegrees[0] === 'b5th' ? '♭5度' : '3度'})</li>
+                <li><strong>3弦 ${fret3Val}F</strong>: <strong>${fingers[1]}指</strong> (${targetDegrees[1] === 'root' ? 'ルート音' : targetDegrees[1] === '7th' ? '7度' : targetDegrees[1] === '5th' ? '5度' : targetDegrees[1] === 'b5th' ? '♭5度' : '3度'})</li>
+                <li><strong>2弦 ${fret2Val}F</strong>: <strong>${fingers[2]}指</strong> (${targetDegrees[2] === 'root' ? 'ルート音' : targetDegrees[2] === '7th' ? '7度' : targetDegrees[2] === '5th' ? '5度' : targetDegrees[2] === 'b5th' ? '♭5度' : '3度'})</li>
+                <li><strong>1弦 ${fret1Val}F</strong>: <strong>${fingers[3]}指</strong> (${targetDegrees[3] === 'root' ? 'ルート音' : targetDegrees[3] === '7th' ? '7度' : targetDegrees[3] === '5th' ? '5度' : targetDegrees[3] === 'b5th' ? '♭5度' : '3度'})</li>
+                <li><strong>5弦・6弦</strong>: 親指または人差し指の先で消音 (Mute)</li>
+            `;
+
+            let tip = '';
+            if (topNote === 'root') {
+                tip = '<strong style="color: var(--color-root);">【STEP 1: 基本の変形 (6弦ルート変形)】</strong> Lesson 03で学んだ「6弦ルートの基本フォーム」をもとにした、ルート音が1弦（最高音）に位置する形です。6弦で弾いていたルート音を1オクターブ上げて1弦に引っ越しさせ、残りの4弦・3弦・2弦の押さえ方はそのままキープしています。手の形（幾何学的パターン）が関連していることを意識すると一瞬で覚えられます！';
+            } else if (topNote === '3rd') {
+                tip = '<strong style="color: var(--color-3rd);">【STEP 1: 基本の変形 (5弦ルート変形)】</strong> Lesson 03で学んだ「5弦ルートの基本フォーム」をもとにした、3度音が1弦（最高音）に位置する形です。5弦・4弦・3弦・2弦で押さえていた手の形を、そのまま高音弦側（4弦・3弦・2弦・1弦）へと丸ごと1本スライド（シフト）した構造になっています（※2弦から1弦のチューニング差を考慮してフレット位置を半音微調整します）。指の配置パターンがそのままスライドしていることを意識しましょう！';
+            } else if (topNote === '5th') {
+                tip = '<strong style="color: var(--color-5th);">【STEP 2: 応用の展開】</strong> 5度音が1弦（最高音）に位置する形（第三転回形）です。コードのキャラクター（メジャー・マイナー）を決める3度と7度が内声（3弦・2弦の中間の音）で綺麗に鳴るため、アンサンブルの中で他の楽器と溶け込みやすく、非常に洗練されたお洒落な響きが得られます。ステップ1を習得した後にチャレンジしましょう！';
+            } else if (topNote === '7th') {
+                tip = '<strong style="color: var(--color-7th);">【STEP 2: 応用の展開】</strong> 7度音が1弦（最高音）に位置する形（基本形）です。テンション感と浮遊感が最も強く、モダンな響きを生みます。次に解決するコード（トニック）へ繋ぐ際に、メロディのラインを滑らかに解決させやすい特徴があります。これもステップ1を完全にマスターした次の段階として覚えましょう。';
+            }
+
+            guidanceEl.innerHTML = `
+                <div style="display: flex; gap: 15px; align-items: flex-start; flex-wrap: wrap;">
+                    <!-- 左側：コードダイアグラム -->
+                    ${this.generateLesson4ChordDiagramSVG(targetFrets, targetDegrees, type, rootName, fingers)}
+                    
+                    <!-- 右側：運指・解説テキスト -->
+                    <div style="flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 200px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 6px; margin-bottom: 4px;">
+                            <span style="font-size: 0.95rem; font-weight: bold; color: var(--accent-amber); font-family: var(--font-heading);">${chordName} - ${invName}</span>
+                        </div>
+                        <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 6px;">
+                            最高音（1弦）に <strong style="color: var(--accent-amber);">${topDegreeName}</strong> が配置された4声ボイシングです。
+                        </div>
+                        <ul style="margin-left: 20px; display: flex; flex-direction: column; gap: 4px; color: var(--text-secondary); list-style-type: disc;">
+                            ${fingeringHtml}
+                        </ul>
+                        <div style="margin-top: 6px; background: rgba(251, 191, 36, 0.03); border-radius: 6px; padding: 8px; font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4;">
+                            <span style="color: var(--accent-amber); font-weight: bold; display: block; margin-bottom: 2px;"><i class="fa-solid fa-lightbulb"></i> この転回形の特徴:</span>
+                            ${tip}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        if (playAudio) {
+            window.audioEngine.playChord(targetMidis, 0.8, 0.25);
+        }
+    }
+
+    getLesson4Fingering(type, topNote) {
+        if (topNote === 'root') { // 1st Inversion
+            if (type === 'maj7') return ['薬', '小', '中', '人'];
+            if (type === 'min7') return ['人', '人', '人', '人'];
+            if (type === 'dom7') return ['中', '薬', '人', '人'];
+            if (type === 'm7b5') return ['中', '薬', '人', '小'];
+        } else if (topNote === '3rd') { // 2nd Inversion
+            if (type === 'maj7') return ['人', '薬', '小', '中'];
+            if (type === 'min7') return ['薬', '小', '中', '人'];
+            if (type === 'dom7') return ['中', '薬', '人', '小'];
+            if (type === 'm7b5') return ['中', '薬', '小', '人'];
+        } else if (topNote === '5th') { // 3rd Inversion
+            if (type === 'maj7') return ['中', '薬', '人', '小'];
+            if (type === 'min7') return ['人', '薬', '人', '小'];
+            if (type === 'dom7') return ['中', '薬', '人', '小'];
+            if (type === 'm7b5') return ['人', '薬', '人', '中'];
+        } else if (topNote === '7th') { // Root Position
+            if (type === 'maj7') return ['人', '人', '人', '薬'];
+            if (type === 'min7') return ['中', '薬', '人', '小'];
+            if (type === 'dom7') return ['人', '人', '人', '中'];
+            if (type === 'm7b5') return ['人', '中', '人', '薬'];
+        }
+        return ['人', '中', '薬', '小'];
+    }
+
+    generateLesson4ChordDiagramSVG(targetFrets, targetDegrees, type, rootName, fingers) {
+        const startFret = Math.min(...targetFrets.filter(f => f > 0));
+
+        let playedNotes = [];
+        playedNotes.push({ 
+            stringIndex: 3, 
+            fret: targetFrets[0], 
+            label: targetDegrees[0] === 'root' ? 'R' : targetDegrees[0] === '7th' ? '7' : targetDegrees[0] === '5th' ? '5' : targetDegrees[0] === 'b5th' ? '♭5' : '3', 
+            finger: fingers[0], 
+            color: targetDegrees[0] === 'root' ? 'var(--color-root)' : targetDegrees[0] === '7th' ? 'var(--color-7th)' : targetDegrees[0] === '5th' ? 'var(--color-5th)' : targetDegrees[0] === 'b5th' ? 'var(--color-b5th)' : 'var(--color-3rd)'
+        });
+        playedNotes.push({ 
+            stringIndex: 2, 
+            fret: targetFrets[1], 
+            label: targetDegrees[1] === 'root' ? 'R' : targetDegrees[1] === '7th' ? '7' : targetDegrees[1] === '5th' ? '5' : targetDegrees[1] === 'b5th' ? '♭5' : '3', 
+            finger: fingers[1], 
+            color: targetDegrees[1] === 'root' ? 'var(--color-root)' : targetDegrees[1] === '7th' ? 'var(--color-7th)' : targetDegrees[1] === '5th' ? 'var(--color-5th)' : targetDegrees[1] === 'b5th' ? 'var(--color-b5th)' : 'var(--color-3rd)'
+        });
+        playedNotes.push({ 
+            stringIndex: 1, 
+            fret: targetFrets[2], 
+            label: targetDegrees[2] === 'root' ? 'R' : targetDegrees[2] === '7th' ? '7' : targetDegrees[2] === '5th' ? '5' : targetDegrees[2] === 'b5th' ? '♭5' : '3', 
+            finger: fingers[2], 
+            color: targetDegrees[2] === 'root' ? 'var(--color-root)' : targetDegrees[2] === '7th' ? 'var(--color-7th)' : targetDegrees[2] === '5th' ? 'var(--color-5th)' : targetDegrees[2] === 'b5th' ? 'var(--color-b5th)' : 'var(--color-3rd)'
+        });
+        playedNotes.push({ 
+            stringIndex: 0, 
+            fret: targetFrets[3], 
+            label: targetDegrees[3] === 'root' ? 'R' : targetDegrees[3] === '7th' ? '7' : targetDegrees[3] === '5th' ? '5' : targetDegrees[3] === 'b5th' ? '♭5' : '3', 
+            finger: fingers[3], 
+            color: targetDegrees[3] === 'root' ? 'var(--color-root)' : targetDegrees[3] === '7th' ? 'var(--color-7th)' : targetDegrees[3] === '5th' ? 'var(--color-5th)' : targetDegrees[3] === 'b5th' ? 'var(--color-b5th)' : 'var(--color-3rd)'
+        });
+
+        const width = 125;
+        const height = 130;
+        const topMargin = 20;
+        const leftMargin = 20;
+        const stringSpacing = 16;
+        const fretHeight = 22;
+
+        let svgHtml = `
+            <svg width="${width}" height="${height}" style="background: rgba(0,0,0,0.18); border-radius: 12px; border: 1px solid var(--border-glass); padding: 5px; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.25);">
+                <text x="6" y="${topMargin + 14}" fill="var(--accent-amber)" font-size="10" font-family="var(--font-heading)" font-weight="bold">${startFret}F</text>
+        `;
+
+        for (let i = 0; i <= 4; i++) {
+            const y = topMargin + i * fretHeight;
+            const strokeColor = (i === 0 && startFret === 1) ? '#ffffff' : 'rgba(255,255,255,0.2)';
+            const strokeWidth = (i === 0 && startFret === 1) ? 3 : 1;
+            svgHtml += `<line x1="${leftMargin}" y1="${y}" x2="${leftMargin + 5 * stringSpacing}" y2="${y}" stroke="${strokeColor}" stroke-width="${strokeWidth}" />`;
+        }
+
+        for (let i = 0; i < 6; i++) {
+            const x = leftMargin + i * stringSpacing;
+            svgHtml += `<line x1="${x}" y1="${topMargin}" x2="${x}" y2="${topMargin + 4 * fretHeight}" stroke="rgba(255,255,255,0.25)" stroke-width="1" />`;
+        }
+
+        svgHtml += `<text x="${leftMargin}" y="14" fill="var(--text-muted)" font-size="10" text-anchor="middle" font-family="sans-serif">×</text>`;
+        svgHtml += `<text x="${leftMargin + stringSpacing}" y="14" fill="var(--text-muted)" font-size="10" text-anchor="middle" font-family="sans-serif">×</text>`;
+
+        playedNotes.forEach(note => {
+            const x = leftMargin + (5 - note.stringIndex) * stringSpacing;
+            const relativeFret = note.fret - startFret + 1;
+            const y = topMargin + (relativeFret - 0.5) * fretHeight;
+
+            svgHtml += `
+                <circle cx="${x}" cy="${y}" r="8.5" fill="${note.color}" filter="drop-shadow(0 0 2px rgba(0,0,0,0.5))" />
+                <text x="${x}" y="${y + 3}" fill="#ffffff" font-size="9" font-weight="bold" font-family="var(--font-heading)" text-anchor="middle">${note.finger}</text>
+                
+                <rect x="${x + 9}" y="${y - 6}" width="16" height="11" rx="2" fill="rgba(0, 0, 0, 0.7)" />
+                <text x="${x + 17}" y="${y + 2.5}" fill="#ffffff" font-size="7.5" font-family="var(--font-heading)" font-weight="bold" text-anchor="middle">${note.label}</text>
+            `;
+        });
+
+        svgHtml += `</svg>`;
+        return svgHtml;
     }
 
     setupChordFormExplorerEvents() {
@@ -4268,12 +4593,7 @@ class SilentRhythmApp {
                 this.updateChordFormVisualization(false);
                 break;
             case 4:
-                this.fretboard.addMarker(48, 'root');
-                this.fretboard.addMarker(55, 'scale');
-                this.fretboard.addMarker(59, 'scale');
-                this.fretboard.addMarker(64, 'scale');
-                this.fretboard.renderMarkers();
-                this.staff.setNoteByMidi(60, true);
+                this.updateLesson4Visualization(false);
                 break;
             case 5:
                 break;

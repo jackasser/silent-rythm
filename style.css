@@ -23,6 +23,7 @@
     --color-root: #f87171;
     --color-3rd: #34d399;
     --color-5th: #c084fc;
+    --color-b5th: #f97316;
     --color-7th: #60a5fa;
     --color-scale: #fbbf24;
     
@@ -469,6 +470,7 @@ body::before {
 .legend-dot.root { color: var(--color-root); }
 .legend-dot.degree3 { color: var(--color-3rd); }
 .legend-dot.degree5 { color: var(--color-5th); }
+.legend-dot.degreeb5 { color: var(--color-b5th); }
 .legend-dot.degree7 { color: var(--color-7th); }
 .legend-dot.scale { color: var(--color-scale); }
 

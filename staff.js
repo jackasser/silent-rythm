@@ -509,6 +509,7 @@ class InteractiveStaff {
                     'root': 'var(--color-root)',
                     '3rd': 'var(--color-3rd)',
                     '5th': 'var(--color-5th)',
+                    'b5th': 'var(--color-b5th)',
                     '7th': 'var(--color-7th)',
                     'scale': 'var(--color-scale)'
                 };
