@@ -23,7 +23,8 @@ class SilentRhythmApp {
         this.chordFormState = {
             root: 'G',
             string: '6', // '6' | '5'
-            type: 'min7' // 'maj7' | 'min7' | 'dom7'
+            type: 'min7', // 'maj7' | 'min7' | 'dom7'
+            voicingMode: '4-basic' // '3-shell' | '4-basic' | '4-tension'
         };
 
         this.cagedEnabled = false;
@@ -1466,6 +1467,12 @@ class SilentRhythmApp {
                             <button class="toggle-btn ${this.chordFormState.type === 'min7' ? 'active' : ''}" id="btn-form-type-min7" style="padding: 4px 8px; font-size: 0.7rem;">m7</button>
                             <button class="toggle-btn ${this.chordFormState.type === 'dom7' ? 'active' : ''}" id="btn-form-type-dom7" style="padding: 4px 8px; font-size: 0.7rem;">7 (ドミナント)</button>
                         </div>
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 4px;">
+                            <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: bold; width: 75px;">4. ボイシング:</span>
+                            <button class="toggle-btn ${this.chordFormState.voicingMode === '3-shell' ? 'active' : ''}" id="btn-form-voicing-3shell" style="padding: 4px 8px; font-size: 0.7rem;">3音シェル (R-3-7)</button>
+                            <button class="toggle-btn ${this.chordFormState.voicingMode === '4-basic' ? 'active' : ''}" id="btn-form-voicing-4basic" style="padding: 4px 8px; font-size: 0.7rem;">4音基本 (R-3-5-7)</button>
+                            <button class="toggle-btn ${this.chordFormState.voicingMode === '4-tension' ? 'active' : ''}" id="btn-form-voicing-4tension" style="padding: 4px 8px; font-size: 0.7rem;">4音テンション (R-3-7-9)</button>
+                        </div>
                     </div>
                     <div id="chord-form-guidance" style="background: rgba(255,255,255,0.02); border: 1px dashed rgba(251, 191, 36, 0.2); border-radius: 8px; padding: 10px; font-size: 0.75rem; line-height: 1.4;">
                     </div>
@@ -2544,6 +2551,35 @@ class SilentRhythmApp {
             });
         }
 
+        // 4. Voicing Mode buttons
+        const btnVoicing3Shell = document.getElementById('btn-form-voicing-3shell');
+        const btnVoicing4Basic = document.getElementById('btn-form-voicing-4basic');
+        const btnVoicing4Tension = document.getElementById('btn-form-voicing-4tension');
+        if (btnVoicing3Shell && btnVoicing4Basic && btnVoicing4Tension) {
+            const updateVoicingClass = (activeBtn) => {
+                [btnVoicing3Shell, btnVoicing4Basic, btnVoicing4Tension].forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                activeBtn.classList.add('active');
+            };
+
+            btnVoicing3Shell.addEventListener('click', () => {
+                updateVoicingClass(btnVoicing3Shell);
+                this.chordFormState.voicingMode = '3-shell';
+                this.updateChordFormVisualization(true);
+            });
+            btnVoicing4Basic.addEventListener('click', () => {
+                updateVoicingClass(btnVoicing4Basic);
+                this.chordFormState.voicingMode = '4-basic';
+                this.updateChordFormVisualization(true);
+            });
+            btnVoicing4Tension.addEventListener('click', () => {
+                updateVoicingClass(btnVoicing4Tension);
+                this.chordFormState.voicingMode = '4-tension';
+                this.updateChordFormVisualization(true);
+            });
+        }
+
         // Initial update
         this.updateChordFormVisualization(false);
     }
@@ -2555,6 +2591,7 @@ class SilentRhythmApp {
         const rootName = this.chordFormState.root;
         const string = this.chordFormState.string;
         const type = this.chordFormState.type;
+        const voicingMode = this.chordFormState.voicingMode || '4-basic';
 
         const rootFrets6 = { 'C': 8, 'D': 10, 'E': 12, 'F': 1, 'G': 3, 'A': 5, 'B': 7 };
         const rootFrets5 = { 'C': 3, 'D': 5, 'E': 7, 'F': 8, 'G': 10, 'A': 12, 'B': 2 };
@@ -2566,67 +2603,79 @@ class SilentRhythmApp {
 
         if (string === '6') {
             rootFret = rootFrets6[rootName];
+            // F (6弦 1F) かつ 4-tension の場合、指が届かない (-1F) のを避けるため 13F にシフトする
+            if (rootName === 'F' && voicingMode === '4-tension') {
+                rootFret = 13;
+            }
             rootMidi = 40 + rootFret; // 6弦開放はE2(40)
-            
-            let fret4, fret3;
-            let midi4, midi3;
 
-            if (type === 'maj7') {
-                fret4 = rootFret + 1; // Major 7th
-                fret3 = rootFret + 1; // Major 3rd
-                midi4 = 50 + fret4;   // 4弦開放はD3(50)
-                midi3 = 55 + fret3;   // 3弦開放はG3(55)
+            if (voicingMode === '3-shell') {
+                let fret4 = (type === 'maj7') ? rootFret + 1 : rootFret; // 7th
+                let fret3 = (type === 'min7') ? rootFret : rootFret + 1; // 3rd
+                let midi4 = 50 + fret4;                                  // 4弦
+                let midi3 = 55 + fret3;                                  // 3弦
+
                 midiStack = [rootMidi, midi4, midi3];
                 degreeStack = ['root', '7th', '3rd'];
                 locKeys = [`5-${rootFret}`, `3-${fret4}`, `2-${fret3}`];
-            } else if (type === 'min7') {
-                fret4 = rootFret;     // Minor 7th
-                fret3 = rootFret;     // Minor 3rd
-                midi4 = 50 + fret4;
-                midi3 = 55 + fret3;
-                midiStack = [rootMidi, midi4, midi3];
-                degreeStack = ['root', '7th', '3rd'];
-                locKeys = [`5-${rootFret}`, `3-${fret4}`, `2-${fret3}`];
-            } else if (type === 'dom7') {
-                fret4 = rootFret;     // Minor 7th
-                fret3 = rootFret + 1; // Major 3rd
-                midi4 = 50 + fret4;
-                midi3 = 55 + fret3;
-                midiStack = [rootMidi, midi4, midi3];
-                degreeStack = ['root', '7th', '3rd'];
-                locKeys = [`5-${rootFret}`, `3-${fret4}`, `2-${fret3}`];
+            } else if (voicingMode === '4-basic') {
+                let fret5 = rootFret + 2;                                // 5th
+                let fret4 = (type === 'maj7') ? rootFret + 1 : rootFret; // 7th
+                let fret3 = (type === 'min7') ? rootFret : rootFret + 1; // 3rd
+                let midi5 = 45 + fret5;                                  // 5弦
+                let midi4 = 50 + fret4;                                  // 4弦
+                let midi3 = 55 + fret3;                                  // 3弦
+
+                midiStack = [rootMidi, midi5, midi4, midi3];
+                degreeStack = ['root', '5th', '7th', '3rd'];
+                locKeys = [`5-${rootFret}`, `4-${fret5}`, `3-${fret4}`, `2-${fret3}`];
+            } else if (voicingMode === '4-tension') {
+                let fret5 = (type === 'min7') ? rootFret - 2 : rootFret - 1; // 3rd
+                let fret4 = (type === 'maj7') ? rootFret + 1 : rootFret;     // 7th
+                let fret3 = rootFret - 1;                                    // 9th
+                let midi5 = 45 + fret5;                                      // 5弦
+                let midi4 = 50 + fret4;                                      // 4弦
+                let midi3 = 55 + fret3;                                      // 3弦
+
+                midiStack = [rootMidi, midi5, midi4, midi3];
+                degreeStack = ['root', '3rd', '7th', '9th'];
+                locKeys = [`5-${rootFret}`, `4-${fret5}`, `3-${fret4}`, `2-${fret3}`];
             }
         } else { // 5弦ルート
             rootFret = rootFrets5[rootName];
             rootMidi = 45 + rootFret; // 5弦開放はA2(45)
 
-            let fret4, fret3;
-            let midi4, midi3;
+            if (voicingMode === '3-shell') {
+                let fret4 = (type === 'min7') ? rootFret - 2 : rootFret - 1; // 3rd
+                let fret3 = (type === 'maj7') ? rootFret + 1 : rootFret;     // 7th
+                let midi4 = 50 + fret4;                                      // 4弦
+                let midi3 = 55 + fret3;                                      // 3弦
 
-            if (type === 'maj7') {
-                fret4 = rootFret - 1; // Major 3rd
-                fret3 = rootFret + 1; // Major 7th
-                midi4 = 50 + fret4;   // 4弦開放はD3(50)
-                midi3 = 55 + fret3;   // 3弦開放はG3(55)
                 midiStack = [rootMidi, midi4, midi3];
                 degreeStack = ['root', '3rd', '7th'];
                 locKeys = [`4-${rootFret}`, `3-${fret4}`, `2-${fret3}`];
-            } else if (type === 'min7') {
-                fret4 = rootFret - 2; // Minor 3rd
-                fret3 = rootFret;     // Minor 7th
-                midi4 = 50 + fret4;
-                midi3 = 55 + fret3;
-                midiStack = [rootMidi, midi4, midi3];
-                degreeStack = ['root', '3rd', '7th'];
-                locKeys = [`4-${rootFret}`, `3-${fret4}`, `2-${fret3}`];
-            } else if (type === 'dom7') {
-                fret4 = rootFret - 1; // Major 3rd
-                fret3 = rootFret;     // Minor 7th
-                midi4 = 50 + fret4;
-                midi3 = 55 + fret3;
-                midiStack = [rootMidi, midi4, midi3];
-                degreeStack = ['root', '3rd', '7th'];
-                locKeys = [`4-${rootFret}`, `3-${fret4}`, `2-${fret3}`];
+            } else if (voicingMode === '4-basic') {
+                let fret4 = rootFret + 2;                                    // 5th
+                let fret3 = (type === 'maj7') ? rootFret + 1 : rootFret;     // 7th
+                let fret2 = (type === 'min7') ? rootFret + 1 : rootFret + 2; // 3rd
+                let midi4 = 50 + fret4;                                      // 4弦
+                let midi3 = 55 + fret3;                                      // 3弦
+                let midi2 = 59 + fret2;                                      // 2弦
+
+                midiStack = [rootMidi, midi4, midi3, midi2];
+                degreeStack = ['root', '5th', '7th', '3rd'];
+                locKeys = [`4-${rootFret}`, `3-${fret4}`, `2-${fret3}`, `1-${fret2}`];
+            } else if (voicingMode === '4-tension') {
+                let fret4 = (type === 'min7') ? rootFret - 2 : rootFret - 1; // 3rd
+                let fret3 = (type === 'maj7') ? rootFret + 1 : rootFret;     // 7th
+                let fret2 = rootFret;                                        // 9th
+                let midi4 = 50 + fret4;                                      // 4弦
+                let midi3 = 55 + fret3;                                      // 3弦
+                let midi2 = 59 + fret2;                                      // 2弦
+
+                midiStack = [rootMidi, midi4, midi3, midi2];
+                degreeStack = ['root', '3rd', '7th', '9th'];
+                locKeys = [`4-${rootFret}`, `3-${fret4}`, `2-${fret3}`, `1-${fret2}`];
             }
         }
 
@@ -2638,15 +2687,27 @@ class SilentRhythmApp {
             const locKey = locKeys[idx];
             const degree = degreeStack[idx];
             
-            // ピアノ伴奏On/Offに関わらず、指板のマーカーには常にルートを表示する
+            // ピアノ伴奏On/Offに関わらず、指板のマーカーには常に全音（ルート含む）を表示する
             this.fretboard.addMarker(locKey, degree);
         });
         this.fretboard.renderMarkers();
 
         // 五線譜（スタッフ）の同期
-        // 伴奏Onのときはルートを省いた2音（ガイドトーン）、Offのときは3音（シェル）
-        const visibleMidis = isPianoOn ? midiStack.slice(1) : midiStack;
-        const visibleDegrees = isPianoOn ? degreeStack.slice(1) : degreeStack;
+        // 伴奏Onのときはルート(root)や5度(5th)を省き、Offのときはすべて表示する
+        const visibleMidis = [];
+        const visibleDegrees = [];
+        midiStack.forEach((midiVal, idx) => {
+            const degree = degreeStack[idx];
+            if (isPianoOn) {
+                if (degree !== 'root' && degree !== '5th') {
+                    visibleMidis.push(midiVal);
+                    visibleDegrees.push(degree);
+                }
+            } else {
+                visibleMidis.push(midiVal);
+                visibleDegrees.push(degree);
+            }
+        });
         this.staff.setChordNotes(visibleMidis, visibleDegrees);
 
         // 運指ガイダンスの更新
@@ -2665,45 +2726,88 @@ class SilentRhythmApp {
         let startFret = rootFret;
         let playedNotes = [];
         let mutedStrings = [true, true, true, true, true, true]; // index 0 to 5 (1st to 6th string)
+        const voicingMode = this.chordFormState.voicingMode || '4-basic';
 
         if (string === '6') {
             const rootFretVal = rootFret;
-            const fret4 = (type === 'maj7') ? rootFretVal + 1 : rootFretVal;
-            const fret3 = (type === 'min7') ? rootFretVal : rootFretVal + 1;
 
-            startFret = rootFretVal;
+            if (voicingMode === '3-shell') {
+                const fret4 = (type === 'maj7') ? rootFretVal + 1 : rootFretVal; // 7th
+                const fret3 = (type === 'min7') ? rootFretVal : rootFretVal + 1; // 3rd
 
-            // ピアノ伴奏On/Offに関わらず、常にルートを表示する
-            playedNotes.push({ stringIndex: 5, fret: rootFretVal, label: 'R', color: 'var(--color-root)' });
-            mutedStrings[5] = false;
-            
-            playedNotes.push({ stringIndex: 3, fret: fret4, label: '7', color: 'var(--color-7th)' });
-            mutedStrings[3] = false;
+                playedNotes.push({ stringIndex: 5, fret: rootFretVal, label: 'R', color: 'var(--color-root)' });
+                mutedStrings[5] = false;
+                playedNotes.push({ stringIndex: 3, fret: fret4, label: '7', color: 'var(--color-7th)' });
+                mutedStrings[3] = false;
+                playedNotes.push({ stringIndex: 2, fret: fret3, label: '3', color: 'var(--color-3rd)' });
+                mutedStrings[2] = false;
+            } else if (voicingMode === '4-basic') {
+                const fret5 = rootFretVal + 2;                                   // 5th
+                const fret4 = (type === 'maj7') ? rootFretVal + 1 : rootFretVal; // 7th
+                const fret3 = (type === 'min7') ? rootFretVal : rootFretVal + 1; // 3rd
 
-            playedNotes.push({ stringIndex: 2, fret: fret3, label: '3', color: 'var(--color-3rd)' });
-            mutedStrings[2] = false;
+                playedNotes.push({ stringIndex: 5, fret: rootFretVal, label: 'R', color: 'var(--color-root)' });
+                mutedStrings[5] = false;
+                playedNotes.push({ stringIndex: 4, fret: fret5, label: '5', color: 'var(--color-5th)' });
+                mutedStrings[4] = false;
+                playedNotes.push({ stringIndex: 3, fret: fret4, label: '7', color: 'var(--color-7th)' });
+                mutedStrings[3] = false;
+                playedNotes.push({ stringIndex: 2, fret: fret3, label: '3', color: 'var(--color-3rd)' });
+                mutedStrings[2] = false;
+            } else if (voicingMode === '4-tension') {
+                const fret5 = (type === 'min7') ? rootFretVal - 2 : rootFretVal - 1; // 3rd
+                const fret4 = (type === 'maj7') ? rootFretVal + 1 : rootFretVal;     // 7th
+                const fret3 = rootFretVal - 1;                                       // 9th
 
-            mutedStrings[4] = true;
-            mutedStrings[1] = true;
-            mutedStrings[0] = true;
-        } else {
+                playedNotes.push({ stringIndex: 5, fret: rootFretVal, label: 'R', color: 'var(--color-root)' });
+                mutedStrings[5] = false;
+                playedNotes.push({ stringIndex: 4, fret: fret5, label: '3', color: 'var(--color-3rd)' });
+                mutedStrings[4] = false;
+                playedNotes.push({ stringIndex: 3, fret: fret4, label: '7', color: 'var(--color-7th)' });
+                mutedStrings[3] = false;
+                playedNotes.push({ stringIndex: 2, fret: fret3, label: '9', color: 'var(--color-scale)' });
+                mutedStrings[2] = false;
+            }
+        } else { // 5弦ルート
             const rootFretVal = rootFret;
-            const fret4 = (type === 'maj7' || type === 'dom7') ? rootFretVal - 1 : rootFretVal - 2;
-            const fret3 = (type === 'maj7') ? rootFretVal + 1 : rootFretVal;
 
-            // ピアノ伴奏On/Offに関わらず、常にルートを表示する
-            playedNotes.push({ stringIndex: 4, fret: rootFretVal, label: 'R', color: 'var(--color-root)' });
-            mutedStrings[4] = false;
+            if (voicingMode === '3-shell') {
+                const fret4 = (type === 'min7') ? rootFretVal - 2 : rootFretVal - 1; // 3rd
+                const fret3 = (type === 'maj7') ? rootFretVal + 1 : rootFretVal;     // 7th
 
-            playedNotes.push({ stringIndex: 3, fret: fret4, label: '3', color: 'var(--color-3rd)' });
-            mutedStrings[3] = false;
+                playedNotes.push({ stringIndex: 4, fret: rootFretVal, label: 'R', color: 'var(--color-root)' });
+                mutedStrings[4] = false;
+                playedNotes.push({ stringIndex: 3, fret: fret4, label: '3', color: 'var(--color-3rd)' });
+                mutedStrings[3] = false;
+                playedNotes.push({ stringIndex: 2, fret: fret3, label: '7', color: 'var(--color-7th)' });
+                mutedStrings[2] = false;
+            } else if (voicingMode === '4-basic') {
+                const fret4 = rootFretVal + 2;                                       // 5th
+                const fret3 = (type === 'maj7') ? rootFretVal + 1 : rootFretVal;     // 7th
+                const fret2 = (type === 'min7') ? rootFretVal + 1 : rootFretVal + 2; // 3rd
 
-            playedNotes.push({ stringIndex: 2, fret: fret3, label: '7', color: 'var(--color-7th)' });
-            mutedStrings[2] = false;
+                playedNotes.push({ stringIndex: 4, fret: rootFretVal, label: 'R', color: 'var(--color-root)' });
+                mutedStrings[4] = false;
+                playedNotes.push({ stringIndex: 3, fret: fret4, label: '5', color: 'var(--color-5th)' });
+                mutedStrings[3] = false;
+                playedNotes.push({ stringIndex: 2, fret: fret3, label: '7', color: 'var(--color-7th)' });
+                mutedStrings[2] = false;
+                playedNotes.push({ stringIndex: 1, fret: fret2, label: '3', color: 'var(--color-3rd)' });
+                mutedStrings[1] = false;
+            } else if (voicingMode === '4-tension') {
+                const fret4 = (type === 'min7') ? rootFretVal - 2 : rootFretVal - 1; // 3rd
+                const fret3 = (type === 'maj7') ? rootFretVal + 1 : rootFretVal;     // 7th
+                const fret2 = rootFretVal;                                           // 9th
 
-            mutedStrings[5] = true;
-            mutedStrings[1] = true;
-            mutedStrings[0] = true;
+                playedNotes.push({ stringIndex: 4, fret: rootFretVal, label: 'R', color: 'var(--color-root)' });
+                mutedStrings[4] = false;
+                playedNotes.push({ stringIndex: 3, fret: fret4, label: '3', color: 'var(--color-3rd)' });
+                mutedStrings[3] = false;
+                playedNotes.push({ stringIndex: 2, fret: fret3, label: '7', color: 'var(--color-7th)' });
+                mutedStrings[2] = false;
+                playedNotes.push({ stringIndex: 1, fret: fret2, label: '9', color: 'var(--color-scale)' });
+                mutedStrings[1] = false;
+            }
         }
 
         // 開放弦 (fret === 0) を除いた、押弦するフレットの最小値を求める
@@ -2772,75 +2876,203 @@ class SilentRhythmApp {
     }
 
     getChordFormGuidanceHTML(string, type, rootName, rootFret) {
+        const voicingMode = this.chordFormState.voicingMode || '4-basic';
         const chordName = `${rootName}${type === 'maj7' ? 'maj7' : type === 'min7' ? 'm7' : '7'}`;
+        const voicingName = voicingMode === '3-shell' ? '3音シェル (R-3-7)' : voicingMode === '4-basic' ? '4音基本 (R-3-5-7)' : '4音テンション (R-3-7-9)';
         
         let fingering = '';
         let tip = '';
         
         if (string === '6') {
-            if (type === 'maj7') {
-                fingering = `
-                    <li><strong>6弦 ${rootFret}F</strong>: <strong>人差し指</strong> (ルート音)</li>
-                    <li><strong>5弦</strong>: 人差し指の先で軽く触れて<strong>消音 (Mute)</strong></li>
-                    <li><strong>4弦 ${rootFret + 1}F</strong>: <strong>薬指</strong> (Major 7th)</li>
-                    <li><strong>3弦 ${rootFret + 1}F</strong>: <strong>小指</strong> (Major 3rd)</li>
-                    <li><strong>2弦・1弦</strong>: 人差し指の腹で軽く触れて<strong>消音 (Mute)</strong></li>
-                `;
-                tip = '人差し指（ルート音）の腹を使って、鳴らさない5弦と1-2弦をしっかりミュートするのが綺麗に響かせる最大のコツです。';
-            } else if (type === 'min7') {
-                fingering = `
-                    <li><strong>6弦 ${rootFret}F</strong>: <strong>人差し指</strong> (ルート音)</li>
-                    <li><strong>5弦</strong>: 人差し指の先で軽く触れて<strong>消音 (Mute)</strong></li>
-                    <li><strong>4弦 ${rootFret}F</strong>: <strong>中指 または 薬指</strong> (Minor 7th)</li>
-                    <li><strong>3弦 ${rootFret}F</strong>: <strong>薬指 または 小指</strong> (Minor 3rd)</li>
-                    <li><strong>2弦・1弦</strong>: 人差し指の腹で軽く触れて<strong>消音 (Mute)</strong></li>
-                `;
-                tip = '中指と薬指を綺麗に並べるか、薬指1本を寝かせて4弦と3弦を同時にセーハ（ジョイント）で押さえるのが実用的です。';
-            } else if (type === 'dom7') {
-                fingering = `
-                    <li><strong>6弦 ${rootFret}F</strong>: <strong>人差し指</strong> (ルート音)</li>
-                    <li><strong>5弦</strong>: 人差し指の先で軽く触れて<strong>消音 (Mute)</strong></li>
-                    <li><strong>4弦 ${rootFret}F</strong>: <strong>中指</strong> (Minor 7th)</li>
-                    <li><strong>3弦 ${rootFret + 1}F</strong>: <strong>薬指</strong> (Major 3rd)</li>
-                    <li><strong>2弦・1弦</strong>: 人差し指の腹で軽く触れて<strong>消音 (Mute)</strong></li>
-                `;
-                tip = '人差し指、中指、薬指が斜めのジグザグに並ぶブルース進行やジャズファンクの基本の形です。';
+            if (voicingMode === '3-shell') {
+                if (type === 'maj7') {
+                    fingering = `
+                        <li><strong>6弦 ${rootFret}F</strong>: <strong>人差し指</strong> (ルート音)</li>
+                        <li><strong>5弦</strong>: 人差し指の先で軽く触れて<strong>消音 (Mute)</strong></li>
+                        <li><strong>4弦 ${rootFret + 1}F</strong>: <strong>薬指</strong> (Major 7th)</li>
+                        <li><strong>3弦 ${rootFret + 1}F</strong>: <strong>小指</strong> (Major 3rd)</li>
+                        <li><strong>2弦・1弦</strong>: 人差し指の腹で軽く触れて<strong>消音 (Mute)</strong></li>
+                    `;
+                    tip = '人差し指（ルート音）の腹を使って、鳴らさない5弦と1-2弦をしっかりミュートするのが綺麗に響かせる最大のコツです。';
+                } else if (type === 'min7') {
+                    fingering = `
+                        <li><strong>6弦 ${rootFret}F</strong>: <strong>人差し指</strong> (ルート音)</li>
+                        <li><strong>5弦</strong>: 人差し指の先で軽く触れて<strong>消音 (Mute)</strong></li>
+                        <li><strong>4弦 ${rootFret}F</strong>: <strong>中指 または 薬指</strong> (Minor 7th)</li>
+                        <li><strong>3弦 ${rootFret}F</strong>: <strong>薬指 または 小指</strong> (Minor 3rd)</li>
+                        <li><strong>2弦・1弦</strong>: 人差し指の腹で軽く触れて<strong>消音 (Mute)</strong></li>
+                    `;
+                    tip = '中指と薬指を綺麗に並べるか、薬指1本を寝かせて4弦と3弦を同時にセーハ（ジョイント）で押さえるのが実用的です。';
+                } else if (type === 'dom7') {
+                    fingering = `
+                        <li><strong>6弦 ${rootFret}F</strong>: <strong>人差し指</strong> (ルート音)</li>
+                        <li><strong>5弦</strong>: 人差し指の先で軽く触れて<strong>消音 (Mute)</strong></li>
+                        <li><strong>4弦 ${rootFret}F</strong>: <strong>中指</strong> (Minor 7th)</li>
+                        <li><strong>3弦 ${rootFret + 1}F</strong>: <strong>薬指</strong> (Major 3rd)</li>
+                        <li><strong>2弦・1弦</strong>: 人差し指の腹で軽く触れて<strong>消音 (Mute)</strong></li>
+                    `;
+                    tip = '人差し指、中指、薬指が斜めのジグザグに並ぶブルース進行やジャズファンクの基本の形です。';
+                }
+            } else if (voicingMode === '4-basic') {
+                if (type === 'maj7') {
+                    fingering = `
+                        <li><strong>6弦 ${rootFret}F</strong>: <strong>人差し指</strong> (ルート音)</li>
+                        <li><strong>5弦 ${rootFret + 2}F</strong>: <strong>小指</strong> (5th)</li>
+                        <li><strong>4弦 ${rootFret + 1}F</strong>: <strong>中指</strong> (Major 7th)</li>
+                        <li><strong>3弦 ${rootFret + 1}F</strong>: <strong>薬指</strong> (Major 3rd)</li>
+                        <li><strong>2弦・1弦</strong>: 人差し指の腹で軽く触れて<strong>消音 (Mute)</strong></li>
+                    `;
+                    tip = '5弦の5度を小指、4弦・3弦を中指と薬指で押さえます。弦をしっかり立てて他の弦をミュートしましょう。';
+                } else if (type === 'min7') {
+                    fingering = `
+                        <li><strong>6弦 ${rootFret}F</strong>: <strong>人差し指</strong> (ルート音)</li>
+                        <li><strong>5弦 ${rootFret + 2}F</strong>: <strong>薬指</strong> (5th)</li>
+                        <li><strong>4弦 ${rootFret}F</strong>: <strong>人差し指</strong> (Minor 7th)</li>
+                        <li><strong>3弦 ${rootFret}F</strong>: <strong>人差し指</strong> (Minor 3rd)</li>
+                        <li><strong>2弦・1弦</strong>: 人差し指で<strong>消音 (Mute/セーハ)</strong></li>
+                    `;
+                    tip = '人差し指で6弦、4弦、3弦を同時にセーハ（バレー）し、5弦だけ薬指で押さえる非常に標準的なバレーコードの形です。';
+                } else if (type === 'dom7') {
+                    fingering = `
+                        <li><strong>6弦 ${rootFret}F</strong>: <strong>人差し指</strong> (ルート音)</li>
+                        <li><strong>5弦 ${rootFret + 2}F</strong>: <strong>薬指</strong> (5th)</li>
+                        <li><strong>4弦 ${rootFret}F</strong>: <strong>人差し指</strong> (Minor 7th)</li>
+                        <li><strong>3弦 ${rootFret + 1}F</strong>: <strong>中指</strong> (Major 3rd)</li>
+                        <li><strong>2弦・1弦</strong>: 消音または人差し指で<strong>消音 (Mute)</strong></li>
+                    `;
+                    tip = '人差し指で6弦と4弦をセーハし、5弦を薬指、3弦を中指で押さえるロックやポップスでも多用される定番のセーハコードの形です。';
+                }
+            } else if (voicingMode === '4-tension') {
+                if (type === 'maj7') {
+                    fingering = `
+                        <li><strong>6弦 ${rootFret}F</strong>: <strong>中指</strong> (ルート音)</li>
+                        <li><strong>5弦 ${rootFret - 1}F</strong>: <strong>人差し指</strong> (Major 3rd)</li>
+                        <li><strong>4弦 ${rootFret + 1}F</strong>: <strong>小指</strong> (Major 7th)</li>
+                        <li><strong>3弦 ${rootFret - 1}F</strong>: <strong>人差し指</strong> (9th)</li>
+                        <li><strong>2弦・1弦</strong>: 軽く触れて<strong>消音 (Mute)</strong></li>
+                    `;
+                    tip = '人差し指で5弦と3弦の低いフレットをセーハし、中指で6弦、小指で4弦を押さえるジャズギターで極めて重要かつ美しいフォームです。';
+                } else if (type === 'min7') {
+                    fingering = `
+                        <li><strong>6弦 ${rootFret}F</strong>: <strong>中指</strong> (ルート音)</li>
+                        <li><strong>5弦 ${rootFret - 2}F</strong>: <strong>人差し指</strong> (Minor 3rd)</li>
+                        <li><strong>4弦 ${rootFret}F</strong>: <strong>薬指</strong> (Minor 7th)</li>
+                        <li><strong>3弦 ${rootFret - 1}F</strong>: <strong>小指</strong> (9th)</li>
+                        <li><strong>2弦・1弦</strong>: 軽く触れて<strong>消音 (Mute)</strong></li>
+                    `;
+                    tip = '指がクロスするような複雑な形状ですが、フレットの位置に合わせて中指・人差し指・薬指・小指を丁寧に配置すると驚くほど綺麗に響きます。';
+                } else if (type === 'dom7') {
+                    fingering = `
+                        <li><strong>6弦 ${rootFret}F</strong>: <strong>中指</strong> (ルート音)</li>
+                        <li><strong>5弦 ${rootFret - 1}F</strong>: <strong>人差し指</strong> (Major 3rd)</li>
+                        <li><strong>4弦 ${rootFret}F</strong>: <strong>薬指</strong> (Minor 7th)</li>
+                        <li><strong>3弦 ${rootFret - 1}F</strong>: <strong>人差し指</strong> (9th)</li>
+                        <li><strong>2弦・1弦</strong>: 軽く触れて<strong>消音 (Mute)</strong></li>
+                    `;
+                    tip = '人差し指のセーハ（5弦と3弦）を軸にして、中指と薬指を交互に並べることで、ファンクやブルースの決定的な響きが得られます。';
+                }
             }
         } else { // 5弦ルート
-            if (type === 'maj7') {
-                fingering = `
-                    <li><strong>6弦</strong>: 親指をネックの上から回し込むか、人差し指の先で触れて<strong>消音 (Mute)</strong></li>
-                    <li><strong>5弦 ${rootFret}F</strong>: <strong>人差し指</strong> (ルート音)</li>
-                    <li><strong>4弦 ${rootFret - 1}F</strong>: <strong>中指</strong> (Major 3rd)</li>
-                    <li><strong>3弦 ${rootFret + 1}F</strong>: <strong>薬指</strong> (Major 7th)</li>
-                    <li><strong>2弦・1弦</strong>: 人差し指の腹で軽く触れて<strong>消音 (Mute)</strong></li>
-                `;
-                tip = '人差し指のルートに対して、中指は1フレット下、薬指は1フレット上と、前後非対称に指を広げる特徴的な美しいフォームです。';
-            } else if (type === 'min7') {
-                fingering = `
-                    <li><strong>6弦</strong>: 親指または人差し指の先で触れて<strong>消音 (Mute)</strong></li>
-                    <li><strong>5弦 ${rootFret}F</strong>: <strong>薬指</strong> (ルート音)</li>
-                    <li><strong>4弦 ${rootFret - 2}F</strong>: <strong>人差し指</strong> (Minor 3rd)</li>
-                    <li><strong>3弦 ${rootFret}F</strong>: <strong>中指</strong> (Minor 7th)</li>
-                    <li><strong>2弦・1弦</strong>: 人差し指の腹で軽く触れて<strong>消音 (Mute)</strong></li>
-                `;
-                tip = '人差し指が2フレット低い位置に入ります。指をしっかり開いて独立させ、他の弦に触れないよう指を立てて押さえましょう。';
-            } else if (type === 'dom7') {
-                fingering = `
-                    <li><strong>6弦</strong>: 親指または人差し指の先で触れて<strong>消音 (Mute)</strong></li>
-                    <li><strong>5弦 ${rootFret}F</strong>: <strong>薬指</strong> (ルート音)</li>
-                    <li><strong>4弦 ${rootFret - 1}F</strong>: <strong>人差し指</strong> (Major 3rd)</li>
-                    <li><strong>3弦 ${rootFret}F</strong>: <strong>中指</strong> (Minor 7th)</li>
-                    <li><strong>2弦・1弦</strong>: 人差し指の腹で軽く触れて<strong>消音 (Mute)</strong></li>
-                `;
-                tip = 'm7のフォームから人差し指を1フレットずらすだけでドミナント7thに変わります。3度と7度の間隔を意識してみてください。';
+            if (voicingMode === '3-shell') {
+                if (type === 'maj7') {
+                    fingering = `
+                        <li><strong>6弦</strong>: 親指をネックの上から回し込むか、人差し指の先で触れて<strong>消音 (Mute)</strong></li>
+                        <li><strong>5弦 ${rootFret}F</strong>: <strong>人差し指</strong> (ルート音)</li>
+                        <li><strong>4弦 ${rootFret - 1}F</strong>: <strong>中指</strong> (Major 3rd)</li>
+                        <li><strong>3弦 ${rootFret + 1}F</strong>: <strong>薬指</strong> (Major 7th)</li>
+                        <li><strong>2弦・1弦</strong>: 人差し指の腹で軽く触れて<strong>消音 (Mute)</strong></li>
+                    `;
+                    tip = '人差し指のルートに対して、中指は1フレット下、薬指は1フレット上と、前後非対称に指を広げる特徴的な美しいフォームです。';
+                } else if (type === 'min7') {
+                    fingering = `
+                        <li><strong>6弦</strong>: 親指または人差し指の先で触れて<strong>消音 (Mute)</strong></li>
+                        <li><strong>5弦 ${rootFret}F</strong>: <strong>薬指</strong> (ルート音)</li>
+                        <li><strong>4弦 ${rootFret - 2}F</strong>: <strong>人差し指</strong> (Minor 3rd)</li>
+                        <li><strong>3弦 ${rootFret}F</strong>: <strong>中指</strong> (Minor 7th)</li>
+                        <li><strong>2弦・1弦</strong>: 人差し指の腹で軽く触れて<strong>消音 (Mute)</strong></li>
+                    `;
+                    tip = '人差し指が2フレット低い位置に入ります。指をしっかり開いて独立させ、他の弦に触れないよう指を立てて押さえましょう。';
+                } else if (type === 'dom7') {
+                    fingering = `
+                        <li><strong>6弦</strong>: 親指または人差し指の先で触れて<strong>消音 (Mute)</strong></li>
+                        <li><strong>5弦 ${rootFret}F</strong>: <strong>薬指</strong> (ルート音)</li>
+                        <li><strong>4弦 ${rootFret - 1}F</strong>: <strong>人差し指</strong> (Major 3rd)</li>
+                        <li><strong>3弦 ${rootFret}F</strong>: <strong>中指</strong> (Minor 7th)</li>
+                        <li><strong>2弦・1弦</strong>: 人差し指の腹で軽く触れて<strong>消音 (Mute)</strong></li>
+                    `;
+                    tip = 'm7のフォームから人差し指を1フレットずらすだけでドミナント7thに変わります。3度と7度の間隔を意識してみてください。';
+                }
+            } else if (voicingMode === '4-basic') {
+                if (type === 'maj7') {
+                    fingering = `
+                        <li><strong>6弦</strong>: 親指または人差し指の先で触れて<strong>消音 (Mute)</strong></li>
+                        <li><strong>5弦 ${rootFret}F</strong>: <strong>人差し指</strong> (ルート音)</li>
+                        <li><strong>4弦 ${rootFret + 2}F</strong>: <strong>小指</strong> (5th)</li>
+                        <li><strong>3弦 ${rootFret + 1}F</strong>: <strong>中指</strong> (Major 7th)</li>
+                        <li><strong>2弦 ${rootFret + 2}F</strong>: <strong>薬指</strong> (Major 3rd)</li>
+                        <li><strong>1弦</strong>: 人差し指の腹で軽く触れて<strong>消音 (Mute)</strong></li>
+                    `;
+                    tip = '人差し指・中指・薬指・小指をフルに使うフォームです。各指の関節をしっかり曲げて、隣の弦に触れないように指を立てて押さえます。';
+                } else if (type === 'min7') {
+                    fingering = `
+                        <li><strong>6弦</strong>: 親指または人差し指の先で触れて<strong>消音 (Mute)</strong></li>
+                        <li><strong>5弦 ${rootFret}F</strong>: <strong>人差し指</strong> (ルート音)</li>
+                        <li><strong>4弦 ${rootFret + 2}F</strong>: <strong>薬指</strong> (5th)</li>
+                        <li><strong>3弦 ${rootFret}F</strong>: <strong>人差し指</strong> (Minor 7th)</li>
+                        <li><strong>2弦 ${rootFret + 1}F</strong>: <strong>中指</strong> (Minor 3rd)</li>
+                        <li><strong>1弦</strong>: 人差し指で<strong>消音 (Mute)</strong></li>
+                    `;
+                    tip = '人差し指で5弦と3弦をセーハし、4弦を薬指、2弦を中指で押さえます。1弦と6弦のミュートを忘れずに。';
+                } else if (type === 'dom7') {
+                    fingering = `
+                        <li><strong>6弦</strong>: 親指または人差し指の先で触れて<strong>消音 (Mute)</strong></li>
+                        <li><strong>5弦 ${rootFret}F</strong>: <strong>人差し指</strong> (ルート音)</li>
+                        <li><strong>4弦 ${rootFret + 2}F</strong>: <strong>薬指</strong> (5th)</li>
+                        <li><strong>3弦 ${rootFret}F</strong>: <strong>人差し指</strong> (Minor 7th)</li>
+                        <li><strong>2弦 ${rootFret + 2}F</strong>: <strong>小指</strong> (Major 3rd)</li>
+                        <li><strong>1弦</strong>: 人差し指で<strong>消音 (Mute)</strong></li>
+                    `;
+                    tip = '人差し指のセーハに加えて、薬指と小指を並べるファンキーな定番フォームです。2弦を小指でしっかり押弦するのがコツです。';
+                }
+            } else if (voicingMode === '4-tension') {
+                if (type === 'maj7') {
+                    fingering = `
+                        <li><strong>6弦</strong>: 親指または人差し指の先で触れて<strong>消音 (Mute)</strong></li>
+                        <li><strong>5弦 ${rootFret}F</strong>: <strong>中指</strong> (ルート音)</li>
+                        <li><strong>4弦 ${rootFret - 1}F</strong>: <strong>人差し指</strong> (Major 3rd)</li>
+                        <li><strong>3弦 ${rootFret + 1}F</strong>: <strong>小指</strong> (Major 7th)</li>
+                        <li><strong>2弦 ${rootFret}F</strong>: <strong>薬指</strong> (9th)</li>
+                        <li><strong>1弦</strong>: 軽く触れて<strong>消音 (Mute)</strong></li>
+                    `;
+                    tip = '中指ルート、人差し指3度、小指7度、薬指9度と、各指が独立した美しい配置です。アルペジオで1音ずつ綺麗に鳴るか確認しましょう。';
+                } else if (type === 'min7') {
+                    fingering = `
+                        <li><strong>6弦</strong>: 親指または人差し指の先で触れて<strong>消音 (Mute)</strong></li>
+                        <li><strong>5弦 ${rootFret}F</strong>: <strong>中指</strong> (ルート音)</li>
+                        <li><strong>4弦 ${rootFret - 2}F</strong>: <strong>人差し指</strong> (Minor 3rd)</li>
+                        <li><strong>3弦 ${rootFret}F</strong>: <strong>薬指</strong> (Minor 7th)</li>
+                        <li><strong>2弦 ${rootFret}F</strong>: <strong>小指</strong> (9th)</li>
+                        <li><strong>1弦</strong>: 軽く触れて<strong>消音 (Mute)</strong></li>
+                    `;
+                    tip = '人差し指を低いフレットに伸ばし、他の3本の指を並べる形です。ストレッチ（指の開き）が必要なので、手首を少し前に出すと押さえやすくなります。';
+                } else if (type === 'dom7') {
+                    fingering = `
+                        <li><strong>6弦</strong>: 親指または人差し指の先で触れて<strong>消音 (Mute)</strong></li>
+                        <li><strong>5弦 ${rootFret}F</strong>: <strong>中指</strong> (ルート音)</li>
+                        <li><strong>4弦 ${rootFret - 1}F</strong>: <strong>人差し指</strong> (Major 3rd)</li>
+                        <li><strong>3弦 ${rootFret}F</strong>: <strong>薬指</strong> (Minor 7th)</li>
+                        <li><strong>2弦 ${rootFret}F</strong>: <strong>薬指</strong> (9th)</li>
+                        <li><strong>1弦</strong>: 軽く触れて<strong>消音 (Mute)</strong></li>
+                    `;
+                    tip = '薬指を寝かせて3弦と2弦を同時にセーハするのが、ファンクやジェームス・ブラウン風の伴奏でもおなじみの定番スタイルです。';
+                }
             }
         }
 
         const stringDesc = string === '6' ? '6弦ルート' : '5弦ルート';
         const roleDesc = window.audioEngine.pianoEnabled 
-            ? '<strong style="color: var(--accent-blue);"><i class="fa-solid fa-keyboard"></i> ピアノ伴奏あり (ガイドトーン / 2声)</strong>: ピアノとベースがいるためルート音を省略し、コードの特徴を決める3度と7度の2音だけで静かに弾きます。' 
-            : '<strong style="color: var(--color-3rd);"><i class="fa-solid fa-guitar"></i> ピアノ伴奏なし (シェル / 3声)</strong>: ベースラインを支えつつ和音を聴かせるため、低音（ルート）を含めた3声コードを弾きます。';
+            ? '<strong style="color: var(--accent-blue);"><i class="fa-solid fa-keyboard"></i> ピアノ伴奏あり (ガイドトーン / 2〜3声)</strong>: ピアノとベースがいるためルート音や5度を省略し、コードの特徴を決める重要な音だけで静かに弾きます。' 
+            : `<strong style="color: var(--color-3rd);"><i class="fa-solid fa-guitar"></i> ピアノ伴奏なし (${voicingName})</strong>: ベースラインを支えつつ和音を聴かせるため、低音（ルート）を含めたボイシングを弾きます。`;
 
         return `
             <div style="display: flex; gap: 15px; align-items: flex-start; flex-wrap: wrap;">
@@ -2850,7 +3082,7 @@ class SilentRhythmApp {
                 <!-- 右側：運指・解説テキスト -->
                 <div style="flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 200px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 6px; margin-bottom: 4px;">
-                        <span style="font-size: 0.95rem; font-weight: bold; color: var(--accent-amber); font-family: var(--font-heading);">${chordName} コードフォーム (${stringDesc})</span>
+                        <span style="font-size: 0.95rem; font-weight: bold; color: var(--accent-amber); font-family: var(--font-heading);">${chordName} ${voicingMode === '3-shell' ? 'シェル' : voicingMode === '4-basic' ? '4音基本' : '4音テンション'} (${stringDesc})</span>
                     </div>
                     <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 6px;">
                         ${roleDesc}

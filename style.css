@@ -1538,4 +1538,103 @@ body::before {
     font-size: 0.9rem;
 }
 
+/* ====================================================
+   コード暗記トレーナー (Chord Trainer)
+   ==================================================== */
+.chord-trainer-title {
+    font-size: 0.95rem;
+    font-weight: bold;
+    color: var(--accent-amber);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-heading);
+}
+
+.chord-trainer-dashboard {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.chord-trainer-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-glass);
+    border-radius: 12px;
+    padding: 12px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.chord-trainer-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(251, 191, 36, 0.4);
+    box-shadow: 0 4px 15px rgba(251, 191, 36, 0.1);
+}
+
+.chord-trainer-score-badge {
+    background: rgba(251, 191, 36, 0.1);
+    color: var(--accent-amber);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: bold;
+}
+
+.chord-trainer-game-container {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-glass);
+    border-radius: 12px;
+    padding: 15px;
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.chord-trainer-timer-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(255,255,255,0.02);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+}
+
+.chord-trainer-timer-bar {
+    height: 4px;
+    background: var(--accent-amber);
+    border-radius: 2px;
+    width: 100%;
+    transition: width 1s linear;
+}
+
+.chord-trainer-question-box {
+    background: rgba(251, 191, 36, 0.04);
+    border: 1px solid rgba(251, 191, 36, 0.15);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #fff;
+}
+
+.chord-trainer-btn-group {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+
+.chord-trainer-result-box {
+    text-align: center;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.01);
+    border: 1px solid var(--border-glass);
+    border-radius: 12px;
+}
+
+
 

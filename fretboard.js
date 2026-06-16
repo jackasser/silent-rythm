@@ -541,6 +541,7 @@ class InteractiveFretboard {
                             '5th': 'var(--color-5th)',
                             'b5th': 'var(--color-b5th)',
                             '7th': 'var(--color-7th)',
+                            '9th': 'var(--color-scale)',
                             'scale': 'var(--color-scale)',
                             'question': 'var(--accent-purple)',
                             'last-clicked': 'var(--accent-amber)'
@@ -581,6 +582,7 @@ class InteractiveFretboard {
                             '5th': '5',
                             'b5th': '♭5',
                             '7th': '7',
+                            '9th': '9',
                             'scale': 'S'
                         };
                         labelText = degreeLabels[type] || '•';

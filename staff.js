@@ -511,6 +511,7 @@ class InteractiveStaff {
                     '5th': 'var(--color-5th)',
                     'b5th': 'var(--color-b5th)',
                     '7th': 'var(--color-7th)',
+                    '9th': 'var(--color-scale)',
                     'scale': 'var(--color-scale)'
                 };
                 const color = degreeColors[degrees[index]] || 'url(#note-grad)';
